@@ -1,7 +1,18 @@
 <launch>
     <node name="turtlesim_node" pkg="turtlesim" type="turtlesim_node" />
-    <param name="/object_origin_x" type="double" value="5.0" />
-    <param name="/object_origin_y" type="double" value="8.0" />
+
     <param name="/search_step_size" type="double" value="0.5" />
+
+    <param name="/num_workstation" type="double" value="5.0" />
+    <param name="/num_turtlebots" type="double" value="1.0" />
+    
+    <param name="/infeed_origin_x" type="double" value="1.0" />
+    <param name="/infeed_origin_y" type="double" value="1.0" />
+
+    <param name="/outfeed_origin_x" type="double" value="10.0" />
+    <param name="/outfeed_origin_y" type="double" value="10.0" />
+
+
+
     <node name="turtle_build_factory" pkg="turtle_factory" type="turtle_build_factory" />
 </launch>

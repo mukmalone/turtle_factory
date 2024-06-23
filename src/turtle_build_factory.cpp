@@ -24,46 +24,66 @@ int main (int argc, char **argv)
 
     while (executed==0){
         //set pen color and turn off to teleport to location
-        turtlesim::SetPen pen_state;
-        pen_state.request.r = 255;
-        pen_state.request.g = 255;
-        pen_state.request.b = 255;
-        pen_state.request.width = 5;
+        turtlesim::SetPen pen_state;        
         pen_state.request.off = 1;
         
         if(pen.call(pen_state)){
-            //teleport to the target location
-            float object_origin_x, object_origin_y;
-            n.getParam("/object_origin_x", object_origin_x);
-            n.getParam("/object_origin_y", object_origin_y);
             turtlesim::TeleportAbsolute coordinates;
-            coordinates.request.x = object_origin_x;
-            coordinates.request.y = object_origin_y;
-            coordinates.request.theta = 0.0;
-            move_abs.call(coordinates);
-            
-            //turn on the pen and draw a circle
-            pen_state.request.off = 0;
-            pen.call(pen_state);
-
-            ros::Rate loop_rate(1);
-            int cnt = 0;
-            //this will draw the circle
-            while (cnt != 3)
+            //setup infeed and outfeed buffers
+            for (int i = 0; i < 2; i++)
             {
-                geometry_msgs::Twist control_command;
-                control_command.linear.x = 2.5;
-                control_command.linear.y = 0.0;
-                control_command.linear.z = 0.0;
-                control_command.angular.x = 0.0;
-                control_command.angular.y = 0.0;
-                control_command.angular.z = 5.0;
+                //teleport to the target location
+                float origin_x, origin_y;
+                if (i==0){
+                    n.getParam("/infeed_origin_x", origin_x);
+                    n.getParam("/infeed_origin_y", origin_y);
+                    pen_state.request.r = 255;
+                    pen_state.request.g = 255;
+                    pen_state.request.b = 255;
+                    pen_state.request.width = 3;
+                } else {
+                    n.getParam("/outfeed_origin_x", origin_x);
+                    n.getParam("/outfeed_origin_y", origin_y);
+                    pen_state.request.r = 0;
+                    pen_state.request.g = 0;
+                    pen_state.request.b = 0;
+                    pen_state.request.width = 3;
+                }
+                
+                
+                coordinates.request.x = origin_x;
+                coordinates.request.y = origin_y;
+                coordinates.request.theta = 0.0;
+                move_abs.call(coordinates);
+                
+                //turn on the pen and draw a circle
+                pen_state.request.off = 0;
+                pen.call(pen_state);
 
-                control_pub.publish(control_command);
-                ros::spinOnce();
-                loop_rate.sleep();
-                ++cnt;
+                ros::Rate loop_rate(1);
+                int cnt = 0;
+                //this will draw the circle
+                while (cnt != 2)
+                {
+                    geometry_msgs::Twist control_command;
+                    control_command.linear.x = 2.5;
+                    control_command.linear.y = 0.0;
+                    control_command.linear.z = 0.0;
+                    control_command.angular.x = 0.0;
+                    control_command.angular.y = 0.0;
+                    control_command.angular.z = 10.0;
+
+                    control_pub.publish(control_command);
+                    ros::spinOnce();
+                    loop_rate.sleep();
+                    ++cnt;
+                }
+                //turn off pen 
+                pen_state.request.off = 1;
+                pen.call(pen_state);
             }
+            
+            
 
             //turn off pen and teleport to starting location
             pen_state.request.off = 1;
