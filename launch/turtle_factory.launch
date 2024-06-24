@@ -3,16 +3,16 @@
 
     <param name="/search_step_size" type="double" value="0.5" />
 
-    <param name="/num_workstation" type="double" value="5.0" />
+    <!-- setting up the workstations  -->
+    <param name="/num_rows_workstations" type="double" value="20.0" />
+    <param name="/num_workstations" type="double" value="20.0" />
     <param name="/num_turtlebots" type="double" value="1.0" />
+    <param name="/num_buffers" type="double" value="2.0" />
     
     <param name="/infeed_origin_x" type="double" value="1.0" />
     <param name="/infeed_origin_y" type="double" value="1.0" />
-
     <param name="/outfeed_origin_x" type="double" value="10.0" />
     <param name="/outfeed_origin_y" type="double" value="10.0" />
-
-
 
     <node name="turtle_build_factory" pkg="turtle_factory" type="turtle_build_factory" />
 </launch>
