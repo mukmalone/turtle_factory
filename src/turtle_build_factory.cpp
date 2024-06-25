@@ -8,6 +8,149 @@
 #include <turtlesim/SetPen.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
+#include <string>
+
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <turtlesim/Spawn.h>
+#include <turtlesim/Pose.h>
+#include <turtle_factory/NextGoal.h>
+#include <std_msgs/Int64.h>
+
+const float pi = 3.14159265358979323846;
+
+using namespace std;
+
+class Robot_Class {
+	public:	
+		string robot_name;
+		ros::NodeHandle n;
+		ros::Subscriber subscriber_pose;
+		turtlesim::Pose pose;
+    	ros::Publisher cmd_vel;    
+		geometry_msgs::Twist control_command;		
+		float goal_x;
+		float goal_y;
+
+		void move_robot();
+
+		void spawn_robot();
+
+		void poseCallback(const turtlesim::Pose::ConstPtr& msg);
+
+		void get_goal();
+
+		bool robot_at_goal();
+
+};
+
+void Robot_Class::move_robot()
+{
+	float angle = atan2(goal_y-pose.y, goal_x-pose.x) - pose.theta;
+    //ensure angle is between -pi and pi
+    if (angle<-pi){
+        angle+=2*pi;
+    }
+    else if (angle>pi){
+        angle-=2*pi;
+    }
+
+	//angular velocity
+	control_command.angular.z = 5 * (angle); 
+	float adaptive_control=1.0;
+
+	//control to enable sharp turns and staighter paths
+	if(abs(control_command.angular.z)<.5){
+		adaptive_control=.5;
+	} else {
+		adaptive_control=abs(control_command.angular.z);
+	}
+
+	//linear velocity
+	control_command.linear.x = .5/adaptive_control* sqrt( pow(goal_x-pose.x,2) + pow(goal_y-pose.y,2) );
+
+	cmd_vel.publish(control_command);
+}
+
+void Robot_Class::spawn_robot()
+{
+	//This class will spawn the turtle and turn-off the pen
+	turtlesim::Spawn turtle;    
+    turtle.request.x = 11.0 * rand() / (float)RAND_MAX;
+	turtle.request.y = 11.0 * rand() / (float)RAND_MAX;
+	turtle.request.theta = 3.14 * rand() / (float)RAND_MAX;
+	turtle.request.name = robot_name;
+    ros::ServiceClient spawn_turtle = n.serviceClient<turtlesim::Spawn>("/spawn");
+    spawn_turtle.call(turtle);
+
+	turtlesim::SetPen pen_state;    
+    pen_state.request.off = 1;    
+    ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/" + robot_name + "/set_pen");
+    pen.call(pen_state);
+
+	subscriber_pose = n.subscribe<turtlesim::Pose>("/" + robot_name + "/pose", 5, &Robot_Class::poseCallback, this);
+	cmd_vel = n.advertise<geometry_msgs::Twist>(robot_name+"/cmd_vel", 10);
+
+	//initiate the values of the control command to zero where needed
+	control_command.linear.y = 0.0;
+    control_command.linear.z = 0.0;
+    control_command.angular.x = 0.0;
+    control_command.angular.y = 0.0;
+}
+
+void Robot_Class::poseCallback(const turtlesim::Pose::ConstPtr& msg)
+{
+	//populate pose for movement
+    pose.x=msg->x;
+	pose.y=msg->y;
+	pose.theta=msg->theta;
+
+	//broadcast TF
+    static tf2_ros::TransformBroadcaster br;
+	geometry_msgs::TransformStamped transformStamped;
+
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = "world";
+    transformStamped.child_frame_id = robot_name;
+	transformStamped.transform.translation.x = msg->x;
+	transformStamped.transform.translation.y = msg->y;
+	transformStamped.transform.translation.z = 0.0;
+	tf2::Quaternion q;
+	q.setRPY(0, 0, msg->theta);
+	transformStamped.transform.rotation.x = q.x();
+	transformStamped.transform.rotation.y = q.y();
+	transformStamped.transform.rotation.z = q.z();
+	transformStamped.transform.rotation.w = q.w();
+
+	br.sendTransform(transformStamped);
+}
+
+void Robot_Class::get_goal()
+{
+	ros::ServiceClient goalClient = n.serviceClient<turtle_factory::NextGoal>("/next_goal");
+    turtle_factory::NextGoal nextGoal;  
+	nextGoal.request.x=pose.x;
+    nextGoal.request.y=pose.y;
+    nextGoal.request.theta=pose.theta;
+    goalClient.call(nextGoal);
+	goal_x=nextGoal.response.x;
+	goal_y=nextGoal.response.y;
+}
+
+bool Robot_Class::robot_at_goal()
+{
+	//check if we are at the goal within tolerance
+    float dx, dy, tolerance=0.1;
+    dx = abs(pose.x-goal_x);
+    dy = abs(pose.y-goal_y);
+	if(dx<=tolerance && dy<=tolerance){
+        //if we are at the goal move to next goal
+        return true;
+    } else {
+		return false;
+	}
+}
 
 int main (int argc, char **argv)
 {
@@ -21,6 +164,7 @@ int main (int argc, char **argv)
    
 
     int executed = 0;
+    
 
     while (executed==0){
         //set pen color and turn off to teleport to location
@@ -87,7 +231,7 @@ int main (int argc, char **argv)
                         ros::Rate loop_rate(1);
                         int cnt = 0;
                         //this will draw the circle
-                        while (cnt != 1)
+                        while (cnt != 2)
                         {
                             geometry_msgs::Twist control_command;
                             control_command.linear.x = 2.5;
@@ -95,7 +239,7 @@ int main (int argc, char **argv)
                             control_command.linear.z = 0.0;
                             control_command.angular.x = 0.0;
                             control_command.angular.y = 0.0;
-                            control_command.angular.z = 10.0;
+                            control_command.angular.z = 12.0;
 
                             control_pub.publish(control_command);
                             ros::spinOnce();
@@ -108,18 +252,16 @@ int main (int argc, char **argv)
                     }
                 }
             }
-            
-            
 
             //turn off pen and teleport to starting location
             pen_state.request.off = 1;
             pen.call(pen_state);
 
-            //get the search step size and place turutle at the start
-            float search_step_size;
-            n.getParam("/search_step_size", search_step_size);
-            coordinates.request.x = search_step_size;
-            coordinates.request.y = search_step_size;
+            //get the search step size and place 1st turutle at the start
+            float turtle_origin_xy;
+            n.getParam("/turtle_origin_xy", turtle_origin_xy);
+            coordinates.request.x = turtle_origin_xy;
+            coordinates.request.y = turtle_origin_xy;
             coordinates.request.theta = 1.57;
             move_abs.call(coordinates);
             //re-enable pen with a different color
@@ -129,14 +271,58 @@ int main (int argc, char **argv)
             pen_state.request.off = 0;
             pen_state.request.width = 2;
             pen.call(pen_state);
+
+            //setup additional turtlebots
+            int num_turtlebots;
+            string turtlebot_names = "";
+            n.getParam("/num_turtlebots", num_turtlebots);
+            n.getParam("/turtle_names", turtlebot_names);
+
+            for(int t;t=0;t<num_turtlebots) {
+
+            }
+
             ++executed;
         }
        else {
             ROS_WARN("Waiting for turtlesim service to start");
         }
     }
+
+    //spawn all the party robots
+	int num_robots = 8;
+	Robot_Class robot[num_robots];
+	//num.data = num_robots;
+
+	//spawn all the party turtles and initiate their first dance
+	for(int i=0; i<num_robots; i++){
+		robot[i].robot_name = "Party_Turtle_" + to_string(i);
+		robot[i].spawn_robot();
+		//robot[i].get_goal();
+	}		
+
+	ros::Rate loop_rate(20);
+
+	while (ros::ok())
+    {   
+		//cycle through each party turtle.  if it is at the goal, get a new one
+		//if it is not, keep moving towards the goal
+		for(int i = 0 ;i<num_robots;i++){
+			if(!robot[i].robot_at_goal()){
+				robot[i].move_robot();
+			} else {
+				robot[i].get_goal();
+			}
+		}
+		//party_pub.publish(num);
+		ros::spinOnce();
+        loop_rate.sleep();
+	}
+
+
+
     //the board is setup and we will publish the search is ready to begin
-    ros::Rate loop_rate(2);
+    //ros::Rate loop_rate(2);
     std_msgs::String start_search;
     start_search.data="START_SEARCH";
     while(ros::ok()){
