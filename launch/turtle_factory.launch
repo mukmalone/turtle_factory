@@ -15,7 +15,7 @@
     <!-- setting up the turtlebots
         the first one is always "turtle1"-->
     <param name="/turtle_origin_xy" type="double" value="0.5" />
-    <param name="/num_turtlebots" type="double" value="1.0" />
+    <param name="/num_turtlebots" type="double" value="10.0" />
     <param name="/turtle_names" type="string" value="TB" />
 
     <node name="turtle_build_factory" pkg="turtle_factory" type="turtle_build_factory" />

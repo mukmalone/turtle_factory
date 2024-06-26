@@ -77,8 +77,8 @@ void Robot_Class::spawn_robot()
 {
 	//This class will spawn the turtle and turn-off the pen
 	turtlesim::Spawn turtle;    
-    turtle.request.x = 11.0 * rand() / (float)RAND_MAX;
-	turtle.request.y = 11.0 * rand() / (float)RAND_MAX;
+    turtle.request.x = 10.0 * rand() / (float)RAND_MAX;
+	turtle.request.y = 10.0 * rand() / (float)RAND_MAX;
 	turtle.request.theta = 3.14 * rand() / (float)RAND_MAX;
 	turtle.request.name = robot_name;
     ros::ServiceClient spawn_turtle = n.serviceClient<turtlesim::Spawn>("/spawn");
@@ -161,7 +161,12 @@ int main (int argc, char **argv)
     ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/turtle1/set_pen");
     ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 10);
     ros::Publisher search_pub = n.advertise<std_msgs::String>("start_search", 10);
-   
+    
+    //setup number of turtlebots
+    int num_turtlebots;
+    string turtlebot_names = "";
+    n.getParam("/num_turtlebots", num_turtlebots);
+    Robot_Class robot[num_turtlebots];
 
     int executed = 0;
     
@@ -272,15 +277,24 @@ int main (int argc, char **argv)
             pen_state.request.width = 2;
             pen.call(pen_state);
 
-            //setup additional turtlebots
-            int num_turtlebots;
-            string turtlebot_names = "";
-            n.getParam("/num_turtlebots", num_turtlebots);
+            //setup additional turtlebots            
             n.getParam("/turtle_names", turtlebot_names);
 
-            for(int t;t=0;t<num_turtlebots) {
+            //spawn all the party robots
 
-            }
+            //num.data = num_robots;
+
+            //spawn all the factory turtles 
+
+            //To do: fix the origin of each robot properly
+            // understand a little better their movement...maybe just drive them to one location
+            // then start to think about how I leave the setup and start the service for connecting each to command-central
+
+            for(int i=0; i<num_turtlebots; i++){
+                robot[i].robot_name = "Party_Turtle_" + to_string(i);
+                robot[i].spawn_robot();
+                //robot[i].get_goal();
+            }	
 
             ++executed;
         }
@@ -289,17 +303,7 @@ int main (int argc, char **argv)
         }
     }
 
-    //spawn all the party robots
-	int num_robots = 8;
-	Robot_Class robot[num_robots];
-	//num.data = num_robots;
-
-	//spawn all the party turtles and initiate their first dance
-	for(int i=0; i<num_robots; i++){
-		robot[i].robot_name = "Party_Turtle_" + to_string(i);
-		robot[i].spawn_robot();
-		//robot[i].get_goal();
-	}		
+    	
 
 	ros::Rate loop_rate(20);
 
@@ -307,7 +311,7 @@ int main (int argc, char **argv)
     {   
 		//cycle through each party turtle.  if it is at the goal, get a new one
 		//if it is not, keep moving towards the goal
-		for(int i = 0 ;i<num_robots;i++){
+		for(int i = 0 ;i<num_turtlebots;i++){
 			if(!robot[i].robot_at_goal()){
 				robot[i].move_robot();
 			} else {
