@@ -1,7 +1,8 @@
 //Author: Michael Muldoon
 //email: michael.muldoon.home@gmail.com
 //license: Apache 2.0
-//Comment: This node builds the factory by placing a circle at the coordinates specified in the launch file
+//Comment: This node builds the factory by placing a circle at the coordinates specified in the launch file and launching the appropriate number of 
+//         turtle workers
 
 #include <ros/ros.h>
 #include <turtlesim/TeleportAbsolute.h>
@@ -25,6 +26,7 @@ using namespace std;
 class Robot_Class {
 	public:	
 		string robot_name;
+        int robot_num;
 		ros::NodeHandle n;
 		ros::Subscriber subscriber_pose;
 		turtlesim::Pose pose;
@@ -77,9 +79,9 @@ void Robot_Class::spawn_robot()
 {
 	//This class will spawn the turtle and turn-off the pen
 	turtlesim::Spawn turtle;    
-    turtle.request.x = 10.0 * rand() / (float)RAND_MAX;
-	turtle.request.y = 10.0 * rand() / (float)RAND_MAX;
-	turtle.request.theta = 3.14 * rand() / (float)RAND_MAX;
+    turtle.request.x = 1 + (0.2 * robot_num);
+	turtle.request.y = 10.0;
+	turtle.request.theta = 1.57;
 	turtle.request.name = robot_name;
     ros::ServiceClient spawn_turtle = n.serviceClient<turtlesim::Spawn>("/spawn");
     spawn_turtle.call(turtle);
@@ -160,7 +162,7 @@ int main (int argc, char **argv)
     ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/turtle1/teleport_absolute");
     ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/turtle1/set_pen");
     ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 10);
-    ros::Publisher search_pub = n.advertise<std_msgs::String>("start_search", 10);
+    ros::Publisher factory_complete_pub = n.advertise<std_msgs::String>("factory_complete", 10);
     
     //setup number of turtlebots
     int num_turtlebots;
@@ -181,6 +183,7 @@ int main (int argc, char **argv)
         n.getParam("/num_buffers", num_buffers);
         n.getParam("/num_workstations", num_workstations);
         n.getParam("/num_rows_workstations", num_rows_workstations);
+        //pen.call(pen_state);
 
         if(pen.call(pen_state)){
             turtlesim::TeleportAbsolute coordinates;
@@ -277,64 +280,42 @@ int main (int argc, char **argv)
             pen_state.request.width = 2;
             pen.call(pen_state);
 
-            //setup additional turtlebots            
+            //setup turtlebots workers
             n.getParam("/turtle_names", turtlebot_names);
 
-            //spawn all the party robots
-
-            //num.data = num_robots;
-
-            //spawn all the factory turtles 
-
-            //To do: fix the origin of each robot properly
-            // understand a little better their movement...maybe just drive them to one location
-            // then start to think about how I leave the setup and start the service for connecting each to command-central
-
             for(int i=0; i<num_turtlebots; i++){
-                robot[i].robot_name = "Party_Turtle_" + to_string(i);
+                if(i+1 < 10){
+                    robot[i].robot_name = turtlebot_names + "0" + to_string(i+1);
+                } else {
+                    robot[i].robot_name = turtlebot_names + to_string(i+1);    
+                }
+                robot[i].robot_num = i+1;
                 robot[i].spawn_robot();
-                //robot[i].get_goal();
             }	
-
             ++executed;
-        }
-       else {
-            ROS_WARN("Waiting for turtlesim service to start");
         }
     }
 
-    	
-
 	ros::Rate loop_rate(20);
 
+    std_msgs::String factory_complete;
+    factory_complete.data="FACTORY_COMPLETE";
 	while (ros::ok())
     {   
 		//cycle through each party turtle.  if it is at the goal, get a new one
 		//if it is not, keep moving towards the goal
 		for(int i = 0 ;i<num_turtlebots;i++){
 			if(!robot[i].robot_at_goal()){
-				robot[i].move_robot();
+				//robot[i].move_robot();
 			} else {
-				robot[i].get_goal();
+				//robot[i].get_goal();
 			}
 		}
 		//party_pub.publish(num);
+        factory_complete_pub.publish(factory_complete);
 		ros::spinOnce();
         loop_rate.sleep();
 	}
-
-
-
-    //the board is setup and we will publish the search is ready to begin
-    //ros::Rate loop_rate(2);
-    std_msgs::String start_search;
-    start_search.data="START_SEARCH";
-    while(ros::ok()){
-        search_pub.publish(start_search);
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
-    
 
     return 0;
 }
