@@ -153,6 +153,9 @@ include_directories(
 add_executable(turtle_build_factory src/turtle_build_factory.cpp)
 target_link_libraries(turtle_build_factory ${catkin_LIBRARIES})
 
+add_executable(turtle_agm_worker_node src/turtle_agm_worker_node.cpp)
+target_link_libraries(turtle_agm_worker_node ${catkin_LIBRARIES})
+
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}

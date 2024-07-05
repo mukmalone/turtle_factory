@@ -1,8 +1,8 @@
-//Author: Michael Muldoon
-//email: michael.muldoon.home@gmail.com
-//license: Apache 2.0
-//Comment: This node builds the factory by placing a circle at the coordinates specified in the launch file and launching the appropriate number of 
-//         turtle workers
+// Author: Michael Muldoon
+// email: michael.muldoon.home@gmail.com
+// license: Apache 2.0
+// Comment: This node builds the factory by placing a circle at the coordinates specified in the launch file and launching the appropriate number of
+//          turtle workers
 
 #include <ros/ros.h>
 #include <turtlesim/TeleportAbsolute.h>
@@ -23,299 +23,331 @@ const float pi = 3.14159265358979323846;
 
 using namespace std;
 
-class Robot_Class {
-	public:	
-		string robot_name;
-        int robot_num;
-		ros::NodeHandle n;
-		ros::Subscriber subscriber_pose;
-		turtlesim::Pose pose;
-    	ros::Publisher cmd_vel;    
-		geometry_msgs::Twist control_command;		
-		float goal_x;
-		float goal_y;
+class Robot_Class
+{
+public:
+    string robot_name;
+    int robot_num;
+    ros::NodeHandle n;
+    ros::Subscriber subscriber_pose;
+    turtlesim::Pose pose;
+    ros::Publisher cmd_vel;
+    geometry_msgs::Twist control_command;
+    float goal_x;
+    float goal_y;
 
-		void move_robot();
+    void move_robot();
 
-		void spawn_robot();
+    void spawn_robot();
 
-		void poseCallback(const turtlesim::Pose::ConstPtr& msg);
+    void poseCallback(const turtlesim::Pose::ConstPtr &msg);
 
-		void get_goal();
+    void get_goal();
 
-		bool robot_at_goal();
-
+    bool robot_at_goal();
 };
 
 void Robot_Class::move_robot()
 {
-	float angle = atan2(goal_y-pose.y, goal_x-pose.x) - pose.theta;
-    //ensure angle is between -pi and pi
-    if (angle<-pi){
-        angle+=2*pi;
+    float angle = atan2(goal_y - pose.y, goal_x - pose.x) - pose.theta;
+    // ensure angle is between -pi and pi
+    if (angle < -pi)
+    {
+        angle += 2 * pi;
     }
-    else if (angle>pi){
-        angle-=2*pi;
+    else if (angle > pi)
+    {
+        angle -= 2 * pi;
     }
 
-	//angular velocity
-	control_command.angular.z = 5 * (angle); 
-	float adaptive_control=1.0;
+    // angular velocity
+    control_command.angular.z = 5 * (angle);
+    float adaptive_control = 1.0;
 
-	//control to enable sharp turns and staighter paths
-	if(abs(control_command.angular.z)<.5){
-		adaptive_control=.5;
-	} else {
-		adaptive_control=abs(control_command.angular.z);
-	}
+    // control to enable sharp turns and staighter paths
+    if (abs(control_command.angular.z) < .5)
+    {
+        adaptive_control = .5;
+    }
+    else
+    {
+        adaptive_control = abs(control_command.angular.z);
+    }
 
-	//linear velocity
-	control_command.linear.x = .5/adaptive_control* sqrt( pow(goal_x-pose.x,2) + pow(goal_y-pose.y,2) );
+    // linear velocity
+    control_command.linear.x = .5 / adaptive_control * sqrt(pow(goal_x - pose.x, 2) + pow(goal_y - pose.y, 2));
 
-	cmd_vel.publish(control_command);
+    cmd_vel.publish(control_command);
 }
 
 void Robot_Class::spawn_robot()
 {
-	//This class will spawn the turtle and turn-off the pen
-	turtlesim::Spawn turtle;    
+    // This class will spawn the turtle and turn-off the pen
+    turtlesim::Spawn turtle;
     turtle.request.x = 1 + (0.2 * robot_num);
-	turtle.request.y = 10.0;
-	turtle.request.theta = 1.57;
-	turtle.request.name = robot_name;
+    turtle.request.y = 10.0;
+    turtle.request.theta = 1.57;
+    turtle.request.name = robot_name;
     ros::ServiceClient spawn_turtle = n.serviceClient<turtlesim::Spawn>("/spawn");
     spawn_turtle.call(turtle);
 
-	turtlesim::SetPen pen_state;    
-    pen_state.request.off = 1;    
+    turtlesim::SetPen pen_state;
+    pen_state.request.off = 1;
     ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/" + robot_name + "/set_pen");
     pen.call(pen_state);
 
-	subscriber_pose = n.subscribe<turtlesim::Pose>("/" + robot_name + "/pose", 5, &Robot_Class::poseCallback, this);
-	cmd_vel = n.advertise<geometry_msgs::Twist>(robot_name+"/cmd_vel", 10);
+    subscriber_pose = n.subscribe<turtlesim::Pose>("/" + robot_name + "/pose", 5, &Robot_Class::poseCallback, this);
+    cmd_vel = n.advertise<geometry_msgs::Twist>(robot_name + "/cmd_vel", 10);
 
-	//initiate the values of the control command to zero where needed
-	control_command.linear.y = 0.0;
+    // initiate the values of the control command to zero where needed
+    control_command.linear.y = 0.0;
     control_command.linear.z = 0.0;
     control_command.angular.x = 0.0;
     control_command.angular.y = 0.0;
 }
 
-void Robot_Class::poseCallback(const turtlesim::Pose::ConstPtr& msg)
+void Robot_Class::poseCallback(const turtlesim::Pose::ConstPtr &msg)
 {
-	//populate pose for movement
-    pose.x=msg->x;
-	pose.y=msg->y;
-	pose.theta=msg->theta;
+    // populate pose for movement
+    pose.x = msg->x;
+    pose.y = msg->y;
+    pose.theta = msg->theta;
 
-	//broadcast TF
+    // broadcast TF
     static tf2_ros::TransformBroadcaster br;
-	geometry_msgs::TransformStamped transformStamped;
+    geometry_msgs::TransformStamped transformStamped;
 
     transformStamped.header.stamp = ros::Time::now();
     transformStamped.header.frame_id = "world";
     transformStamped.child_frame_id = robot_name;
-	transformStamped.transform.translation.x = msg->x;
-	transformStamped.transform.translation.y = msg->y;
-	transformStamped.transform.translation.z = 0.0;
-	tf2::Quaternion q;
-	q.setRPY(0, 0, msg->theta);
-	transformStamped.transform.rotation.x = q.x();
-	transformStamped.transform.rotation.y = q.y();
-	transformStamped.transform.rotation.z = q.z();
-	transformStamped.transform.rotation.w = q.w();
+    transformStamped.transform.translation.x = msg->x;
+    transformStamped.transform.translation.y = msg->y;
+    transformStamped.transform.translation.z = 0.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, msg->theta);
+    transformStamped.transform.rotation.x = q.x();
+    transformStamped.transform.rotation.y = q.y();
+    transformStamped.transform.rotation.z = q.z();
+    transformStamped.transform.rotation.w = q.w();
 
-	br.sendTransform(transformStamped);
+    br.sendTransform(transformStamped);
 }
 
 void Robot_Class::get_goal()
 {
-	ros::ServiceClient goalClient = n.serviceClient<turtle_factory::NextGoal>("/next_goal");
-    turtle_factory::NextGoal nextGoal;  
-	nextGoal.request.x=pose.x;
-    nextGoal.request.y=pose.y;
-    nextGoal.request.theta=pose.theta;
+    ros::ServiceClient goalClient = n.serviceClient<turtle_factory::NextGoal>("/next_goal");
+    turtle_factory::NextGoal nextGoal;
+    nextGoal.request.x = pose.x;
+    nextGoal.request.y = pose.y;
+    nextGoal.request.theta = pose.theta;
     goalClient.call(nextGoal);
-	goal_x=nextGoal.response.x;
-	goal_y=nextGoal.response.y;
+    goal_x = nextGoal.response.x;
+    goal_y = nextGoal.response.y;
 }
 
 bool Robot_Class::robot_at_goal()
 {
-	//check if we are at the goal within tolerance
-    float dx, dy, tolerance=0.1;
-    dx = abs(pose.x-goal_x);
-    dy = abs(pose.y-goal_y);
-	if(dx<=tolerance && dy<=tolerance){
-        //if we are at the goal move to next goal
+    // check if we are at the goal within tolerance
+    float dx, dy, tolerance = 0.1;
+    dx = abs(pose.x - goal_x);
+    dy = abs(pose.y - goal_y);
+    if (dx <= tolerance && dy <= tolerance)
+    {
+        // if we are at the goal move to next goal
         return true;
-    } else {
-		return false;
-	}
+    }
+    else
+    {
+        return false;
+    }
 }
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
     ros::init(argc, argv, "turtle_build_factory");
     ros::NodeHandle n;
-    
+
     ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/turtle1/teleport_absolute");
     ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/turtle1/set_pen");
     ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 10);
     ros::Publisher factory_complete_pub = n.advertise<std_msgs::String>("factory_complete", 10);
-    
-    //setup number of turtlebots
+
+    // setup number of turtlebots
     int num_turtlebots;
     string turtlebot_names = "";
     n.getParam("/num_turtlebots", num_turtlebots);
     Robot_Class robot[num_turtlebots];
 
+    // broadcast factory is not yet completed
+    std_msgs::String factory_complete;
     int executed = 0;
-    
+    ros::Rate loop_rate(20);
+    while (ros::ok())
+    {
 
-    while (executed==0){
-        //set pen color and turn off to teleport to location
-        turtlesim::SetPen pen_state;        
-        pen_state.request.off = 1;
-        pen_state.request.width = 3;
+        while (executed == 0)
+        {
+            factory_complete.data = "FALSE";
+            factory_complete_pub.publish(factory_complete);
 
-        int num_buffers, num_workstations, num_rows_workstations;
-        n.getParam("/num_buffers", num_buffers);
-        n.getParam("/num_workstations", num_workstations);
-        n.getParam("/num_rows_workstations", num_rows_workstations);
-        //pen.call(pen_state);
+            // set pen color and turn off to teleport to location
+            turtlesim::SetPen pen_state;
+            pen_state.request.off = 1;
+            pen_state.request.width = 3;
 
-        if(pen.call(pen_state)){
-            turtlesim::TeleportAbsolute coordinates;
-            //setup infeed and outfeed buffers
-            for(int j=0; j<2;j++){
-                //j=0 is for infeed & outfeed setup
-                //j=1 is for workstation setup
-                int draw_loop_size, row_loop_size;
-                if(j==0){
-                    draw_loop_size = num_buffers;
-                    row_loop_size = 1;
-                } else {
-                    draw_loop_size = num_workstations;
-                    row_loop_size = num_rows_workstations;
-                }
+            int num_buffers, num_workstations, num_rows_workstations;
+            n.getParam("/num_buffers", num_buffers);
+            n.getParam("/num_workstations", num_workstations);
+            n.getParam("/num_rows_workstations", num_rows_workstations);
 
-                for(int k = 0; k < row_loop_size; k++){
-                    for (int i = 0; i < draw_loop_size; i++)
+            if (pen.call(pen_state))
+            {
+                turtlesim::TeleportAbsolute coordinates;
+                // setup infeed and outfeed buffers
+                for (int j = 0; j < 2; j++)
+                {
+                    // j=0 is for infeed & outfeed setup
+                    // j=1 is for workstation setup
+                    int draw_loop_size, row_loop_size;
+                    if (j == 0)
                     {
-                        //teleport to the target location
-                        float origin_x, origin_y;
+                        draw_loop_size = num_buffers;
+                        row_loop_size = 1;
+                    }
+                    else
+                    {
+                        draw_loop_size = num_workstations;
+                        row_loop_size = num_rows_workstations;
+                    }
 
-                        //setup the parameters
-                        if (i==0 && j==0){
-                            n.getParam("/infeed_origin_x", origin_x);
-                            n.getParam("/infeed_origin_y", origin_y);
-                            pen_state.request.r = 255;
-                            pen_state.request.g = 255;
-                            pen_state.request.b = 255;
-                        } else if (i==1 && j==0) {
-                            n.getParam("/outfeed_origin_x", origin_x);
-                            n.getParam("/outfeed_origin_y", origin_y);
-                            pen_state.request.r = 0;
-                            pen_state.request.g = 0;
-                            pen_state.request.b = 0;
-                        } else if (j==1) {
-                            origin_x = 1 + (i * (10.0 / num_workstations));
-                            origin_y = 2 + (k * (8.0 / num_rows_workstations));
-                            pen_state.request.r = 0;
-                            pen_state.request.g = 255;
-                            pen_state.request.b = 0;
-                        }
-
-                        coordinates.request.x = origin_x;
-                        coordinates.request.y = origin_y;
-                        coordinates.request.theta = 0.0;
-                        move_abs.call(coordinates);
-                        
-                        //turn on the pen and draw a circle
-                        pen_state.request.off = 0;
-                        pen.call(pen_state);
-
-                        ros::Rate loop_rate(1);
-                        int cnt = 0;
-                        //this will draw the circle
-                        while (cnt != 2)
+                    for (int k = 0; k < row_loop_size; k++)
+                    {
+                        for (int i = 0; i < draw_loop_size; i++)
                         {
-                            geometry_msgs::Twist control_command;
-                            control_command.linear.x = 2.5;
-                            control_command.linear.y = 0.0;
-                            control_command.linear.z = 0.0;
-                            control_command.angular.x = 0.0;
-                            control_command.angular.y = 0.0;
-                            control_command.angular.z = 12.0;
+                            // teleport to the target location
+                            float origin_x, origin_y;
 
-                            control_pub.publish(control_command);
-                            ros::spinOnce();
-                            loop_rate.sleep();
-                            ++cnt;
+                            // setup the parameters
+                            if (i == 0 && j == 0)
+                            {
+                                n.getParam("/infeed_origin_x", origin_x);
+                                n.getParam("/infeed_origin_y", origin_y);
+                                pen_state.request.r = 255;
+                                pen_state.request.g = 255;
+                                pen_state.request.b = 255;
+                            }
+                            else if (i == 1 && j == 0)
+                            {
+                                n.getParam("/outfeed_origin_x", origin_x);
+                                n.getParam("/outfeed_origin_y", origin_y);
+                                pen_state.request.r = 0;
+                                pen_state.request.g = 0;
+                                pen_state.request.b = 0;
+                            }
+                            else if (j == 1)
+                            {
+                                origin_x = 1 + (i * (10.0 / num_workstations));
+                                origin_y = 2 + (k * (8.0 / num_rows_workstations));
+                                pen_state.request.r = 0;
+                                pen_state.request.g = 255;
+                                pen_state.request.b = 0;
+                            }
+
+                            coordinates.request.x = origin_x;
+                            coordinates.request.y = origin_y;
+                            coordinates.request.theta = 0.0;
+                            move_abs.call(coordinates);
+
+                            // turn on the pen and draw a circle
+                            pen_state.request.off = 0;
+                            pen.call(pen_state);
+
+                            ros::Rate loop_rate(1);
+                            int cnt = 0;
+                            // this will draw the circle
+                            while (cnt != 2)
+                            {
+                                geometry_msgs::Twist control_command;
+                                control_command.linear.x = 2.5;
+                                control_command.linear.y = 0.0;
+                                control_command.linear.z = 0.0;
+                                control_command.angular.x = 0.0;
+                                control_command.angular.y = 0.0;
+                                control_command.angular.z = 12.0;
+
+                                control_pub.publish(control_command);
+                                ros::spinOnce();
+                                loop_rate.sleep();
+                                ++cnt;
+                            }
+                            // turn off pen
+                            pen_state.request.off = 1;
+                            pen.call(pen_state);
+                            factory_complete_pub.publish(factory_complete);
                         }
-                        //turn off pen 
-                        pen_state.request.off = 1;
-                        pen.call(pen_state);
                     }
                 }
-            }
 
-            //turn off pen and teleport to starting location
-            pen_state.request.off = 1;
-            pen.call(pen_state);
+                // turn off pen and teleport to starting location
+                pen_state.request.off = 1;
+                pen.call(pen_state);
 
-            //get the search step size and place 1st turutle at the start
-            float turtle_origin_xy;
-            n.getParam("/turtle_origin_xy", turtle_origin_xy);
-            coordinates.request.x = turtle_origin_xy;
-            coordinates.request.y = turtle_origin_xy;
-            coordinates.request.theta = 1.57;
-            move_abs.call(coordinates);
-            //re-enable pen with a different color
-            pen_state.request.r = 0;
-            pen_state.request.g = 0;
-            pen_state.request.b = 0;
-            pen_state.request.off = 0;
-            pen_state.request.width = 2;
-            pen.call(pen_state);
+                // get the search step size and place 1st turutle at the start
+                float turtle_origin_xy;
+                n.getParam("/turtle_origin_xy", turtle_origin_xy);
+                coordinates.request.x = turtle_origin_xy;
+                coordinates.request.y = turtle_origin_xy;
+                coordinates.request.theta = 1.57;
+                move_abs.call(coordinates);
+                // re-enable pen with a different color
+                pen_state.request.r = 0;
+                pen_state.request.g = 0;
+                pen_state.request.b = 0;
+                pen_state.request.off = 0;
+                pen_state.request.width = 2;
+                pen.call(pen_state);
 
-            //setup turtlebots workers
-            n.getParam("/turtle_names", turtlebot_names);
+                // setup turtlebots workers
+                n.getParam("/turtle_names", turtlebot_names);
 
-            for(int i=0; i<num_turtlebots; i++){
-                if(i+1 < 10){
-                    robot[i].robot_name = turtlebot_names + "0" + to_string(i+1);
-                } else {
-                    robot[i].robot_name = turtlebot_names + to_string(i+1);    
+                for (int i = 0; i < num_turtlebots; i++)
+                {
+                    if (i + 1 < 10)
+                    {
+                        robot[i].robot_name = turtlebot_names + "0" + to_string(i + 1);
+                    }
+                    else
+                    {
+                        robot[i].robot_name = turtlebot_names + to_string(i + 1);
+                    }
+                    robot[i].robot_num = i + 1;
+                    robot[i].spawn_robot();
+                    factory_complete_pub.publish(factory_complete);
                 }
-                robot[i].robot_num = i+1;
-                robot[i].spawn_robot();
-            }	
-            ++executed;
+                ++executed;
+                // get ready to broadcast the factory is complete
+                factory_complete.data = "TRUE";
+            }
         }
-    }
 
-	ros::Rate loop_rate(20);
-
-    std_msgs::String factory_complete;
-    factory_complete.data="FACTORY_COMPLETE";
-	while (ros::ok())
-    {   
-		//cycle through each party turtle.  if it is at the goal, get a new one
-		//if it is not, keep moving towards the goal
-		for(int i = 0 ;i<num_turtlebots;i++){
-			if(!robot[i].robot_at_goal()){
-				//robot[i].move_robot();
-			} else {
-				//robot[i].get_goal();
-			}
-		}
-		//party_pub.publish(num);
+        // cycle through each party turtle.  if it is at the goal, get a new one
+        // if it is not, keep moving towards the goal
+        for (int i = 0; i < num_turtlebots; i++)
+        {
+            if (!robot[i].robot_at_goal())
+            {
+                // robot[i].move_robot();
+            }
+            else
+            {
+                // robot[i].get_goal();
+            }
+        }
+        // party_pub.publish(num);
         factory_complete_pub.publish(factory_complete);
-		ros::spinOnce();
+        ros::spinOnce();
         loop_rate.sleep();
-	}
+    }
 
     return 0;
 }
