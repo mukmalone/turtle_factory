@@ -170,7 +170,7 @@ int main(int argc, char **argv)
     ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/turtle1/teleport_absolute");
     ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/turtle1/set_pen");
     ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 10);
-    ros::Publisher factory_complete_pub = n.advertise<std_msgs::String>("factory_complete", 10);
+    ros::Publisher factory_complete_pub = n.advertise<std_msgs::Int64>("factory_complete", 10);
 
     // setup number of turtlebots
     int num_turtlebots;
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     Robot_Class robot[num_turtlebots];
 
     // broadcast factory is not yet completed
-    std_msgs::String factory_complete;
+    std_msgs::Int64 factory_complete;
     int executed = 0;
     ros::Rate loop_rate(20);
     while (ros::ok())
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 
         while (executed == 0)
         {
-            factory_complete.data = "FALSE";
+            factory_complete.data = 0;
             factory_complete_pub.publish(factory_complete);
 
             // set pen color and turn off to teleport to location
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
                 }
                 ++executed;
                 // get ready to broadcast the factory is complete
-                factory_complete.data = "TRUE";
+                factory_complete.data = 1;
             }
         }
 
