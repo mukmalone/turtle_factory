@@ -37,11 +37,14 @@ public:
   ros::Subscriber subscriber_pose;
   turtlesim::Pose pose;
   int robot_connected;
+  float goal_x;
+  float goal_y;
 
   void agm_comm();
   void connect_robot();
   void move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW);
   void poseCallback(const turtlesim::Pose::ConstPtr &msg);
+  bool robot_at_goal();
 };
 
 void Robot_Class::agm_comm()
@@ -96,8 +99,12 @@ void Robot_Class::connect_robot()
 
 void Robot_Class::move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW)
 {
-  cout << "Trying to move" << endl;
+  cout << "Trying to move to X: " + to_string(posX) + " Y: " + to_string(posY) << endl;
+  goal_x = posX;
+  goal_y = posY;
+  cout << "Current position X: " + to_string(pose.x) + " Y: " + to_string(pose.y) << endl;
   // tell the action client that we want to spin a thread by default
+
   float angle = atan2(posY - pose.y, posX - pose.x) - pose.theta;
   // ensure angle is between -pi and pi
   if (angle < -pi)
@@ -125,9 +132,26 @@ void Robot_Class::move(float posX, float posY, float posZ, float orientX, float 
 
   // linear velocity
   control_command.linear.x = .5 / adaptive_control * sqrt(pow(posX - pose.x, 2) + pow(posY - pose.y, 2));
-  
+
   cmd_vel.publish(control_command);
 };
+
+bool Robot_Class::robot_at_goal()
+{
+  // check if we are at the goal within tolerance
+  float dx, dy, tolerance = 0.1;
+  dx = abs(pose.x - goal_x);
+  dy = abs(pose.y - goal_y);
+  if (dx <= tolerance && dy <= tolerance)
+  {
+    // if we are at the goal move to next goal
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 
 int main(int argc, char **argv)
 {
@@ -163,11 +187,12 @@ int main(int argc, char **argv)
 
   // destination coordinates
 
+  ros::Rate loop_rate(20);
   while (ros::ok())
   {
     string job = robot.job.request.function;
     int status = robot.job.response.status;
-    ros::Rate loop_rate(.5);
+
     cout << job << endl;
     if (factory_complete_status == 1)
     {
@@ -176,8 +201,10 @@ int main(int argc, char **argv)
       {
         robot.connect_robot();
       }
-
-      robot.move(4.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+      if (!robot.robot_at_goal())
+      {
+        robot.move(4.0, 4.0, 1.57, 0.0, 0.0, 0.0, 0.0);
+      }
       if (1 == 0)
       {
         if (job == "START")
