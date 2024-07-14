@@ -157,10 +157,10 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "turtle_agm_worker_node");
   ros::NodeHandle n;
-
   ros::Subscriber factory_complete = n.subscribe("factory_complete", 100, factory_complete_Callback);
-
   Robot_Class robot;
+  int robot_moved = 0;
+
   if (argc > 1)
   {
     robot.key = argv[1];
@@ -201,127 +201,144 @@ int main(int argc, char **argv)
       {
         robot.connect_robot();
       }
-      if (!robot.robot_at_goal())
-      {
-        robot.move(4.0, 4.0, 1.57, 0.0, 0.0, 0.0, 0.0);
-      }
-      if (1 == 0)
-      {
-        if (job == "START")
-        {
-          // ready for a new job
-          robot.job.request.function = "NEXTJOB";
-          robot.job.request.location = "";
-          robot.agm_comm();
-        }
-        else if (job == "NEXTJOB" && status == 1)
-        {
-          // we have a new job to be activated
-          cout << "Found next job and activating" << endl;
-          // source
-          sPosX = robot.job.response.sourcePosX;
-          sPosY = robot.job.response.sourcePosY;
-          sPosZ = robot.job.response.sourcePosZ;
-          sOrientX = robot.job.response.sourceOrientX;
-          sOrientY = robot.job.response.sourceOrientY;
-          sOrientZ = robot.job.response.sourceOrientZ;
-          sOrientW = robot.job.response.sourceOrientW;
-          // destination
-          dPosX = robot.job.response.destPosX;
-          dPosY = robot.job.response.destPosY;
-          dPosZ = robot.job.response.destPosZ;
-          dOrientX = robot.job.response.destOrientX;
-          dOrientY = robot.job.response.destOrientY;
-          dOrientZ = robot.job.response.destOrientZ;
-          dOrientW = robot.job.response.destOrientW;
 
-          robot.job.request.function = "ACTIVATEJOB";
-          robot.job.request.location = "";
-          robot.agm_comm();
+      if (job == "START")
+      {
+        // ready for a new job
+        robot.job.request.function = "NEXTJOB";
+        robot.job.request.location = "";
+        robot_moved = 0;
+        robot.agm_comm();
+      }
+      else if (job == "NEXTJOB" && status == 1)
+      {
+        // we have a new job to be activated
+        cout << "Found next job and activating" << endl;
+        // source
+        sPosX = robot.job.response.sourcePosX;
+        sPosY = robot.job.response.sourcePosY;
+        sPosZ = robot.job.response.sourcePosZ;
+        sOrientX = robot.job.response.sourceOrientX;
+        sOrientY = robot.job.response.sourceOrientY;
+        sOrientZ = robot.job.response.sourceOrientZ;
+        sOrientW = robot.job.response.sourceOrientW;
+        // destination
+        dPosX = robot.job.response.destPosX;
+        dPosY = robot.job.response.destPosY;
+        dPosZ = robot.job.response.destPosZ;
+        dOrientX = robot.job.response.destOrientX;
+        dOrientY = robot.job.response.destOrientY;
+        dOrientZ = robot.job.response.destOrientZ;
+        dOrientW = robot.job.response.destOrientW;
+
+        robot.job.request.function = "ACTIVATEJOB";
+        robot.job.request.location = "";
+        robot.agm_comm();
+      }
+      else if (job == "ACTIVATEJOB" && status == 1)
+      {
+        // MOVING ROBOT
+        if (!robot.robot_at_goal() && !robot_moved)
+        {
+          robot.move(sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
         }
-        else if (job == "ACTIVATEJOB" && status == 1)
+        else
         {
           // move to source
           cout << "Moving to source" << endl;
           robot.job.request.function = "MOVEWORKER";
           robot.job.request.location = "source";
           cout << sPosX << " " << sPosY << " " << sPosZ << " " << sOrientX << " " << sOrientY << " " << sOrientZ << " " << sOrientW << endl;
-          robot.move(sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
+
           if (robot.job.request.function == "ERROR")
           {
             cout << "We have an error moving" << endl;
           }
           else
           {
+            robot_moved = 1;
             robot.agm_comm();
           }
         }
-        else if (job == "MOVEWORKER" && status == 1)
+      }
+      else if (job == "MOVEWORKER" && status == 1)
+      {
+        // either TAKEPART or LOADPART depending on location
+        if (robot.job.request.location == "source")
         {
-          // either TAKEPART or LOADPART depending on location
-          if (robot.job.request.location == "source")
-          {
-            cout << "Taking part" << endl;
-            robot.job.request.function = "TAKEPART";
-          }
-          else
-          {
-            cout << "Loading workstation" << endl;
-            robot.job.request.function = "LOADPART";
-          }
-          robot.job.request.location = "";
-          robot.agm_comm();
+          cout << "Taking part" << endl;
+          robot.job.request.function = "TAKEPART";
         }
-        else if (job == "TAKEPART" && status == 1)
+        else
+        {
+          cout << "Loading workstation" << endl;
+          robot.job.request.function = "LOADPART";
+        }
+        robot.job.request.location = "";
+        robot_moved = 0;
+        robot.agm_comm();
+      }
+      else if (job == "TAKEPART" && status == 1)
+      {
+        // MOVE ROBOT
+        if (!robot.robot_at_goal()&& !robot_moved)
+        {
+          robot.move(dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
+        }
+        else
         {
           // move to destination station
           cout << "Moving to destination" << endl;
           robot.job.request.function = "MOVEWORKER";
           robot.job.request.location = "destination";
           cout << dPosX << " " << dPosY << " " << dPosZ << " " << dOrientX << " " << dOrientY << " " << dOrientZ << " " << dOrientW << endl;
-          robot.move(dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
+
           if (robot.job.request.function == "ERROR")
           {
             cout << "We have an error moving" << endl;
           }
           else
           {
+            robot_moved = 1;
             robot.agm_comm();
           }
         }
-        else if (job == "LOADPART" && status == 1)
+        //
+      }
+      else if (job == "LOADPART" && status == 1)
+      {
+        // archive job
+        cout << "Archiving job" << endl;
+        robot.job.request.function = "ARCHIVEJOB";
+        robot.job.request.location = "";
+        robot_moved = 0;
+        robot.agm_comm();
+      }
+      else if (job == "ARCHIVEJOB" && status == 1)
+      {
+        // start over
+        robot.job.request.function = "START";
+        robot.job.request.location = "";
+        robot_moved = 0;
+        cout << "Start again" << endl;
+      }
+      else
+      {
+        // error
+        if (robot.job.request.function != "ERROR")
         {
-          // archive job
-          cout << "Archiving job" << endl;
-          robot.job.request.function = "ARCHIVEJOB";
-          robot.job.request.location = "";
-          robot.agm_comm();
-        }
-        else if (job == "ARCHIVEJOB" && status == 1)
-        {
+          cout << job << endl;
+          cout << status << endl;
+          cout << robot.job.response.name << endl;
           // start over
           robot.job.request.function = "START";
           robot.job.request.location = "";
-          cout << "Start again" << endl;
         }
-        else
-        {
-          // error
-          if (robot.job.request.function != "ERROR")
-          {
-            cout << job << endl;
-            cout << status << endl;
-            cout << robot.job.response.name << endl;
-            // start over
-            robot.job.request.function = "START";
-            robot.job.request.location = "";
-          }
 
-          if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || (status == 0 && job == "NEXTJOB"))
-          {
-            // there wasn't a job to do, reset and ask again
-            robot.job.request.function = "START";
-          }
+        if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || (status == 0 && job == "NEXTJOB"))
+        {
+          // there wasn't a job to do, reset and ask again
+          robot.job.request.function = "START";
         }
       }
     }
