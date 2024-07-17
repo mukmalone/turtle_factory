@@ -23,4 +23,7 @@
     <!-- setting up the communication nodes-->
     <node name="web_comm_server_node" pkg="agm_comm" type="web_comm_server_node" />
     <node name="turtle_agm_worker_node" pkg="turtle_factory" type="turtle_agm_worker_node" args="668f1a4fe9bcef706b10fc29 move_base TB01" output="screen"/>
+    <!---->
+    <node name="turtle_agm_worker_node2" pkg="turtle_factory" type="turtle_agm_worker_node" args="6695852ceb3f587734a830be move_base TB02" output="screen"/>
+    <node name="turtle_agm_worker_node3" pkg="turtle_factory" type="turtle_agm_worker_node" args="66970905647a83c0be34859a move_base TB03" output="screen"/>
 </launch>

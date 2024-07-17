@@ -83,11 +83,8 @@ void Robot_Class::poseCallback(const turtlesim::Pose::ConstPtr &msg)
 
 void Robot_Class::connect_robot()
 {
-  cout << "Trying to connect" << endl;
   subscriber_pose = n.subscribe<turtlesim::Pose>("/" + name + "/pose", 5, &Robot_Class::poseCallback, this);
   cmd_vel = n.advertise<geometry_msgs::Twist>(name + "/cmd_vel", 10);
-
-  cout << pose.x << endl;
 
   // initiate the values of the control command to zero where needed
   control_command.linear.y = 0.0;
@@ -153,13 +150,21 @@ bool Robot_Class::robot_at_goal()
   }
 }
 
+void output(int in)
+{
+  cout << to_string(in) << endl;
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "turtle_agm_worker_node");
   ros::NodeHandle n;
   ros::Subscriber factory_complete = n.subscribe("factory_complete", 100, factory_complete_Callback);
   Robot_Class robot;
-  int robot_moved = 0;
+  int robot_moved_source = 0;
+  int robot_moved_dest = 0;
+  int counter = 0;
+  int check = 0;
 
   if (argc > 1)
   {
@@ -172,12 +177,6 @@ int main(int argc, char **argv)
   {
     cout << "No key defined for the robot interface" << endl;
   }
-
-  cout << argc << endl;
-  cout << argv << endl;
-  cout << robot.key << endl;
-  cout << robot.move_base << endl;
-  cout << robot.name << endl;
 
   // find next job
   robot.job.request.function = "START";
@@ -192,8 +191,9 @@ int main(int argc, char **argv)
   {
     string job = robot.job.request.function;
     int status = robot.job.response.status;
-
-    cout << job << endl;
+    check = check + 1;
+    cout << to_string(check) + " check" << endl;
+    cout << to_string(counter) + " counter" << endl;
     if (factory_complete_status == 1)
     {
       // let's connect to the robot
@@ -202,12 +202,16 @@ int main(int argc, char **argv)
         robot.connect_robot();
       }
 
-      if (job == "START")
+      if (job == "START" && counter > 100)
       {
+        cout << job << " bob" << endl;
+        cout << to_string(check) + " second check" << endl;
         // ready for a new job
         robot.job.request.function = "NEXTJOB";
         robot.job.request.location = "";
-        robot_moved = 0;
+        robot_moved_source = 0;
+        robot_moved_dest = 0;
+        counter = 0;
         robot.agm_comm();
       }
       else if (job == "NEXTJOB" && status == 1)
@@ -237,8 +241,10 @@ int main(int argc, char **argv)
       }
       else if (job == "ACTIVATEJOB" && status == 1)
       {
+        robot.goal_x = sPosX;
+        robot.goal_y = sPosY;
         // MOVING ROBOT
-        if (!robot.robot_at_goal() && !robot_moved)
+        if (!robot.robot_at_goal() && !robot_moved_source)
         {
           robot.move(sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
         }
@@ -256,7 +262,7 @@ int main(int argc, char **argv)
           }
           else
           {
-            robot_moved = 1;
+            robot_moved_source = 1;
             robot.agm_comm();
           }
         }
@@ -275,13 +281,14 @@ int main(int argc, char **argv)
           robot.job.request.function = "LOADPART";
         }
         robot.job.request.location = "";
-        robot_moved = 0;
         robot.agm_comm();
       }
       else if (job == "TAKEPART" && status == 1)
       {
+        robot.goal_x = dPosX;
+        robot.goal_y = dPosY;
         // MOVE ROBOT
-        if (!robot.robot_at_goal()&& !robot_moved)
+        if (!robot.robot_at_goal() && !robot_moved_dest)
         {
           robot.move(dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
         }
@@ -299,7 +306,7 @@ int main(int argc, char **argv)
           }
           else
           {
-            robot_moved = 1;
+            robot_moved_dest = 1;
             robot.agm_comm();
           }
         }
@@ -311,7 +318,8 @@ int main(int argc, char **argv)
         cout << "Archiving job" << endl;
         robot.job.request.function = "ARCHIVEJOB";
         robot.job.request.location = "";
-        robot_moved = 0;
+        robot_moved_source = 0;
+        robot_moved_dest = 0;
         robot.agm_comm();
       }
       else if (job == "ARCHIVEJOB" && status == 1)
@@ -319,7 +327,8 @@ int main(int argc, char **argv)
         // start over
         robot.job.request.function = "START";
         robot.job.request.location = "";
-        robot_moved = 0;
+        robot_moved_source = 0;
+        robot_moved_dest = 0;
         cout << "Start again" << endl;
       }
       else
@@ -327,6 +336,7 @@ int main(int argc, char **argv)
         // error
         if (robot.job.request.function != "ERROR")
         {
+          cout << "reset" << endl;
           cout << job << endl;
           cout << status << endl;
           cout << robot.job.response.name << endl;
@@ -346,6 +356,7 @@ int main(int argc, char **argv)
     {
       cout << "Factory not ready" << endl;
     }
+    counter += 1;
     ros::spinOnce();
     loop_rate.sleep();
   }

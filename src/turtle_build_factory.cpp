@@ -18,6 +18,7 @@
 #include <turtlesim/Pose.h>
 #include <turtle_factory/NextGoal.h>
 #include <std_msgs/Int64.h>
+#include <ros/console.h>
 
 const float pi = 3.14159265358979323846;
 
@@ -248,6 +249,10 @@ int main(int argc, char **argv)
                             {
                                 origin_x = 1 + (i * (10.0 / num_workstations));
                                 origin_y = 2 + (k * (8.0 / num_rows_workstations));
+                                cout << to_string(i) << endl;
+                                cout << to_string(origin_x) << endl;
+                                cout << to_string(origin_y) << endl;
+                                ROS_DEBUG("Hello %s", "World");
                                 pen_state.request.r = 0;
                                 pen_state.request.g = 255;
                                 pen_state.request.b = 0;
