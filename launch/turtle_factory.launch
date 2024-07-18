@@ -2,8 +2,8 @@
     <node name="turtlesim_node" pkg="turtlesim" type="turtlesim_node" />
 
     <!-- setting up the workstations  -->
-    <param name="/num_rows_workstations" type="double" value="1.0" />
-    <param name="/num_workstations" type="double" value="2.0" />    
+    <param name="/num_rows_workstations" type="double" value="2.0" />
+    <param name="/num_workstations" type="double" value="5.0" />    
     <param name="/num_buffers" type="double" value="2.0" />
     
     <param name="/infeed_origin_x" type="double" value="1.0" />
@@ -23,7 +23,14 @@
     <!-- setting up the communication nodes-->
     <node name="web_comm_server_node" pkg="agm_comm" type="web_comm_server_node" />
     <node name="turtle_agm_worker_node" pkg="turtle_factory" type="turtle_agm_worker_node" args="668f1a4fe9bcef706b10fc29 move_base TB01" output="screen"/>
-    <!---->
     <node name="turtle_agm_worker_node2" pkg="turtle_factory" type="turtle_agm_worker_node" args="6695852ceb3f587734a830be move_base TB02" output="screen"/>
     <node name="turtle_agm_worker_node3" pkg="turtle_factory" type="turtle_agm_worker_node" args="66970905647a83c0be34859a move_base TB03" output="screen"/>
+    <!---->
+    <node name="turtle_agm_worker_node4" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998ccd853c283c2d053c07 move_base TB04" output="screen"/>
+    <node name="turtle_agm_worker_node5" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998cdc853c283c2d053c13 move_base TB05" output="screen"/>
+    <node name="turtle_agm_worker_node6" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998ce7853c283c2d053c1f move_base TB06" output="screen"/>
+    <node name="turtle_agm_worker_node7" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998cee853c283c2d053c2b move_base TB07" output="screen"/>
+    <node name="turtle_agm_worker_node8" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998cf9853c283c2d053c37 move_base TB08" output="screen"/>
+    <node name="turtle_agm_worker_node9" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998d15853c283c2d053c5b move_base TB09" output="screen"/>
+    <node name="turtle_agm_worker_node10" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998d1b853c283c2d053c67 move_base TB10" output="screen"/>
 </launch>
