@@ -37,14 +37,19 @@ public:
   ros::Subscriber subscriber_pose;
   turtlesim::Pose pose;
   int robot_connected;
+
   float goal_x;
   float goal_y;
+  // this goal is for the station
+  bool at_goal;
+  // this goal is for marking the part in or out of station
+  bool at_goal2;
 
   void agm_comm();
   void connect_robot();
   void move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW);
   void poseCallback(const turtlesim::Pose::ConstPtr &msg);
-  bool robot_at_goal();
+  void robot_at_goal();
 };
 
 void Robot_Class::agm_comm()
@@ -133,20 +138,25 @@ void Robot_Class::move(float posX, float posY, float posZ, float orientX, float 
   cmd_vel.publish(control_command);
 };
 
-bool Robot_Class::robot_at_goal()
+void Robot_Class::robot_at_goal()
 {
   // check if we are at the goal within tolerance
   float dx, dy, tolerance = 0.1;
   dx = abs(pose.x - goal_x);
   dy = abs(pose.y - goal_y);
+
   if (dx <= tolerance && dy <= tolerance)
   {
-    // if we are at the goal move to next goal
-    return true;
-  }
-  else
-  {
-    return false;
+    if (!at_goal && !at_goal2)
+    {
+      at_goal = true;
+      at_goal2 = false;
+    }
+    else if (at_goal && !at_goal2)
+    {
+      at_goal = true;
+      at_goal2 = true;
+    }
   }
 }
 
@@ -182,9 +192,8 @@ int main(int argc, char **argv)
   robot.job.request.function = "START";
   // source coordinates
   float sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW;
-  float dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW;
-
   // destination coordinates
+  float dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW;
 
   ros::Rate loop_rate(20);
   while (ros::ok())
@@ -200,17 +209,19 @@ int main(int argc, char **argv)
       if (robot.robot_connected == 0)
       {
         robot.connect_robot();
+        robot.at_goal = false;
+        robot.at_goal2 = false;
       }
 
       if (job == "START" && counter > 100)
       {
-        cout << job << " bob" << endl;
-        cout << to_string(check) + " second check" << endl;
         // ready for a new job
         robot.job.request.function = "NEXTJOB";
         robot.job.request.location = "";
         robot_moved_source = 0;
         robot_moved_dest = 0;
+        robot.at_goal = false;
+        robot.at_goal2 = false;
         counter = 0;
         robot.agm_comm();
       }
@@ -241,12 +252,23 @@ int main(int argc, char **argv)
       }
       else if (job == "ACTIVATEJOB" && status == 1)
       {
-        robot.goal_x = sPosX;
-        robot.goal_y = sPosY;
-        // MOVING ROBOT
-        if (!robot.robot_at_goal() && !robot_moved_source)
+        // setup goal
+        if (!robot.at_goal)
         {
-          robot.move(sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
+          robot.goal_x = sPosX;
+          robot.goal_y = sPosY;
+        }
+        else
+        {
+          robot.goal_x = sPosX;
+          robot.goal_y = sPosY + 0.4;
+        }
+
+        // MOVING ROBOT
+        robot.robot_at_goal();
+        if ((!robot.at_goal || !robot.at_goal2) && !robot_moved_source)
+        {
+          robot.move(robot.goal_x, robot.goal_y, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
         }
         else
         {
@@ -263,6 +285,8 @@ int main(int argc, char **argv)
           else
           {
             robot_moved_source = 1;
+            robot.at_goal = false;
+            robot.at_goal2 = false;
             robot.agm_comm();
           }
         }
@@ -285,12 +309,23 @@ int main(int argc, char **argv)
       }
       else if (job == "TAKEPART" && status == 1)
       {
-        robot.goal_x = dPosX;
-        robot.goal_y = dPosY;
-        // MOVE ROBOT
-        if (!robot.robot_at_goal() && !robot_moved_dest)
+        // setup goal
+        if (!robot.at_goal)
         {
-          robot.move(dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
+          robot.goal_x = dPosX;
+          robot.goal_y = dPosY;
+        }
+        else
+        {
+          robot.goal_x = dPosX;
+          robot.goal_y = dPosY + 0.4;
+        }
+
+        // MOVE ROBOT
+        robot.robot_at_goal();
+        if ((!robot.at_goal || !robot.at_goal2) && !robot_moved_dest)
+        {
+          robot.move(robot.goal_x, robot.goal_y, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
         }
         else
         {
@@ -307,6 +342,8 @@ int main(int argc, char **argv)
           else
           {
             robot_moved_dest = 1;
+            robot.at_goal = false;
+            robot.at_goal2 = false;
             robot.agm_comm();
           }
         }
