@@ -10,6 +10,7 @@
 #include <turtlesim/Pose.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <turtlesim/SetPen.h>
 
 using namespace std;
 
@@ -35,7 +36,9 @@ public:
   geometry_msgs::Twist control_command;
   ros::Publisher cmd_vel;
   ros::Subscriber subscriber_pose;
+  ros::ServiceClient pen;
   turtlesim::Pose pose;
+  turtlesim::SetPen pen_state;
   int robot_connected;
 
   float goal_x;
@@ -44,6 +47,8 @@ public:
   bool at_goal;
   // this goal is for marking the part in or out of station
   bool at_goal2;
+  // this goal is to park robot
+  bool at_park;
 
   void agm_comm();
   void connect_robot();
@@ -96,6 +101,14 @@ void Robot_Class::connect_robot()
   control_command.linear.z = 0.0;
   control_command.angular.x = 0.0;
   control_command.angular.y = 0.0;
+  // re-enable pen with a different color
+  pen_state.request.r = 0;
+  pen_state.request.g = 0;
+  pen_state.request.b = 0;
+  pen_state.request.off = 1;
+  pen_state.request.width = 2;
+  pen = n.serviceClient<turtlesim::SetPen>("/" + name + "/set_pen");
+  pen.call(pen_state);
   robot_connected = 1;
 }
 
@@ -141,21 +154,29 @@ void Robot_Class::move(float posX, float posY, float posZ, float orientX, float 
 void Robot_Class::robot_at_goal()
 {
   // check if we are at the goal within tolerance
-  float dx, dy, tolerance = 0.1;
+  float dx, dy, tolerance = 0.005;
   dx = abs(pose.x - goal_x);
   dy = abs(pose.y - goal_y);
 
   if (dx <= tolerance && dy <= tolerance)
   {
-    if (!at_goal && !at_goal2)
+    if (!at_goal && !at_goal2 && !at_park)
     {
       at_goal = true;
       at_goal2 = false;
+      at_park = false;
     }
-    else if (at_goal && !at_goal2)
+    else if (at_goal && !at_goal2 && !at_park)
     {
       at_goal = true;
       at_goal2 = true;
+      at_park = false;
+    }
+    else if (at_goal && at_goal2 && !at_park)
+    {
+      at_goal = true;
+      at_goal2 = true;
+      at_park = true;
     }
   }
 }
@@ -211,6 +232,7 @@ int main(int argc, char **argv)
         robot.connect_robot();
         robot.at_goal = false;
         robot.at_goal2 = false;
+        robot.at_park = false;
       }
 
       if (job == "START" && counter > 100)
@@ -222,6 +244,7 @@ int main(int argc, char **argv)
         robot_moved_dest = 0;
         robot.at_goal = false;
         robot.at_goal2 = false;
+        robot.at_park = false;
         counter = 0;
         robot.agm_comm();
       }
@@ -253,20 +276,37 @@ int main(int argc, char **argv)
       else if (job == "ACTIVATEJOB" && status == 1)
       {
         // setup goal
-        if (!robot.at_goal)
+        if (!robot.at_goal && !robot.at_goal2 && !robot.at_park)
         {
           robot.goal_x = sPosX;
           robot.goal_y = sPosY;
         }
-        else
+        else if (robot.at_goal && !robot.at_goal2 && !robot.at_park)
         {
           robot.goal_x = sPosX;
           robot.goal_y = sPosY + 0.4;
+          robot.pen_state.request.r = 0;
+          robot.pen_state.request.g = 255;
+          robot.pen_state.request.b = 0;
+          robot.pen_state.request.off = 0;
+          robot.pen_state.request.width = 8;
+          robot.pen.call(robot.pen_state);
+        }
+        else if (robot.at_goal && robot.at_goal2 && !robot.at_park)
+        {
+          robot.goal_x = 1 ;
+          robot.goal_y = 10;
+          robot.pen_state.request.r = 0;
+          robot.pen_state.request.g = 0;
+          robot.pen_state.request.b = 0;
+          robot.pen_state.request.off = 1;
+          robot.pen.call(robot.pen_state);
+          robot.at_park = true;
         }
 
         // MOVING ROBOT
         robot.robot_at_goal();
-        if ((!robot.at_goal || !robot.at_goal2) && !robot_moved_source)
+        if ((!robot.at_goal || !robot.at_goal2 || !robot.at_park) && !robot_moved_source)
         {
           robot.move(robot.goal_x, robot.goal_y, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
         }
@@ -284,9 +324,12 @@ int main(int argc, char **argv)
           }
           else
           {
+            robot.pen_state.request.off = 1;
+            robot.pen.call(robot.pen_state);
             robot_moved_source = 1;
             robot.at_goal = false;
             robot.at_goal2 = false;
+            robot.at_park = false;
             robot.agm_comm();
           }
         }
@@ -310,20 +353,36 @@ int main(int argc, char **argv)
       else if (job == "TAKEPART" && status == 1)
       {
         // setup goal
-        if (!robot.at_goal)
+        if (!robot.at_goal && !robot.at_goal2 && !robot.at_park)
         {
           robot.goal_x = dPosX;
           robot.goal_y = dPosY;
         }
-        else
+        else if (robot.at_goal && !robot.at_goal2 && !robot.at_park)
         {
           robot.goal_x = dPosX;
           robot.goal_y = dPosY + 0.4;
+          robot.pen_state.request.r = 255;
+          robot.pen_state.request.g = 0;
+          robot.pen_state.request.b = 0;
+          robot.pen_state.request.off = 0;
+          robot.pen_state.request.width = 4;
+          robot.pen.call(robot.pen_state);
+        }
+        else if (robot.at_goal && robot.at_goal2 && !robot.at_park)
+        {
+          robot.goal_x = 1 ;
+          robot.goal_y = 10;
+          robot.pen_state.request.r = 0;
+          robot.pen_state.request.g = 0;
+          robot.pen_state.request.b = 0;
+          robot.pen_state.request.off = 1;
+          robot.pen.call(robot.pen_state);
         }
 
         // MOVE ROBOT
         robot.robot_at_goal();
-        if ((!robot.at_goal || !robot.at_goal2) && !robot_moved_dest)
+        if ((!robot.at_goal || !robot.at_goal2 || !robot.at_park) && !robot_moved_dest)
         {
           robot.move(robot.goal_x, robot.goal_y, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
         }
@@ -341,9 +400,12 @@ int main(int argc, char **argv)
           }
           else
           {
+            robot.pen_state.request.off = 1;
+            robot.pen.call(robot.pen_state);
             robot_moved_dest = 1;
             robot.at_goal = false;
             robot.at_goal2 = false;
+            robot.at_park = false;
             robot.agm_comm();
           }
         }
