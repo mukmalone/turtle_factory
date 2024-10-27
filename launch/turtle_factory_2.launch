@@ -1,0 +1,144 @@
+<launch>
+   
+    <node name="turtlesim_node" pkg="turtlesim" type="turtlesim_node" namespace="sim02"/>        
+
+    <!-- setting up the workstations  -->
+    <param name="/num_rows_workstations" type="double" value="5.0" />
+    <!--5-->
+    <param name="/num_workstations" type="double" value="10.0" />    
+    <!--10-->
+    <param name="/num_buffers" type="double" value="2.0" />
+    
+    <param name="/infeed_origin_x" type="double" value="1.0" />
+    <param name="/infeed_origin_y" type="double" value="1.0" />
+    <param name="/outfeed_origin_x" type="double" value="10.0" />
+    <param name="/outfeed_origin_y" type="double" value="10.0" />
+
+    <!-- setting up the turtlebots the first one is always "turtle1"-->
+    <param name="turtle_name" type="string" value="FirstTurtle"/>
+    <param name="/turtle_origin_xy" type="double" value="0.5" />
+    <param name="/num_turtlebots" type="double" value="50.0" />
+    
+    <!--51-->
+    <param name="/turtle_names" type="string" value="TB" />
+
+    <param name="/start_num" type="double" value="50" />
+    <!--args= sim namespace, turtle name start num-->
+    <node name="turtle_build_factory_2" pkg="turtle_factory" type="turtle_build_factory" args="sim02"/>
+        
+    <!-- setting up the communication nodes
+    <node name="web_comm_server_node61" pkg="agm_comm" type="web_comm_server_node" args="61"/>
+    <node name="web_comm_server_node62" pkg="agm_comm" type="web_comm_server_node" args="62"/>
+    <node name="web_comm_server_node63" pkg="agm_comm" type="web_comm_server_node" args="63"/>
+    <node name="web_comm_server_node64" pkg="agm_comm" type="web_comm_server_node" args="64"/>
+    <node name="web_comm_server_node65" pkg="agm_comm" type="web_comm_server_node" args="65"/>
+    <node name="web_comm_server_node66" pkg="agm_comm" type="web_comm_server_node" args="66"/>
+    <node name="web_comm_server_node67" pkg="agm_comm" type="web_comm_server_node" args="67"/>
+    <node name="web_comm_server_node68" pkg="agm_comm" type="web_comm_server_node" args="68"/>
+    <node name="web_comm_server_node69" pkg="agm_comm" type="web_comm_server_node" args="69"/>
+    <node name="web_comm_server_node70" pkg="agm_comm" type="web_comm_server_node" args="70"/>
+
+    <node name="web_comm_server_node71" pkg="agm_comm" type="web_comm_server_node" args="71"/>
+    <node name="web_comm_server_node72" pkg="agm_comm" type="web_comm_server_node" args="72"/>
+    <node name="web_comm_server_node73" pkg="agm_comm" type="web_comm_server_node" args="73"/>
+    <node name="web_comm_server_node74" pkg="agm_comm" type="web_comm_server_node" args="74"/>
+    <node name="web_comm_server_node75" pkg="agm_comm" type="web_comm_server_node" args="75"/>
+    <node name="web_comm_server_node76" pkg="agm_comm" type="web_comm_server_node" args="76"/>
+    <node name="web_comm_server_node77" pkg="agm_comm" type="web_comm_server_node" args="77"/>
+    <node name="web_comm_server_node78" pkg="agm_comm" type="web_comm_server_node" args="78"/>
+    <node name="web_comm_server_node79" pkg="agm_comm" type="web_comm_server_node" args="79"/>
+    <node name="web_comm_server_node80" pkg="agm_comm" type="web_comm_server_node" args="80"/>
+
+    <node name="web_comm_server_node81" pkg="agm_comm" type="web_comm_server_node" args="81"/>
+    <node name="web_comm_server_node82" pkg="agm_comm" type="web_comm_server_node" args="82"/>
+    <node name="web_comm_server_node83" pkg="agm_comm" type="web_comm_server_node" args="83"/>
+    <node name="web_comm_server_node84" pkg="agm_comm" type="web_comm_server_node" args="84"/>
+    <node name="web_comm_server_node85" pkg="agm_comm" type="web_comm_server_node" args="85"/>
+    <node name="web_comm_server_node86" pkg="agm_comm" type="web_comm_server_node" args="86"/>
+    <node name="web_comm_server_node87" pkg="agm_comm" type="web_comm_server_node" args="87"/>
+    <node name="web_comm_server_node88" pkg="agm_comm" type="web_comm_server_node" args="88"/>
+    <node name="web_comm_server_node89" pkg="agm_comm" type="web_comm_server_node" args="89"/>
+    <node name="web_comm_server_node90" pkg="agm_comm" type="web_comm_server_node" args="90"/>
+
+    <node name="web_comm_server_node91" pkg="agm_comm" type="web_comm_server_node" args="91"/>
+    <node name="web_comm_server_node92" pkg="agm_comm" type="web_comm_server_node" args="92"/>
+    <node name="web_comm_server_node93" pkg="agm_comm" type="web_comm_server_node" args="93"/>
+    <node name="web_comm_server_node94" pkg="agm_comm" type="web_comm_server_node" args="94"/>
+    <node name="web_comm_server_node95" pkg="agm_comm" type="web_comm_server_node" args="95"/>
+    <node name="web_comm_server_node96" pkg="agm_comm" type="web_comm_server_node" args="96"/>
+    <node name="web_comm_server_node97" pkg="agm_comm" type="web_comm_server_node" args="97"/>
+    <node name="web_comm_server_node98" pkg="agm_comm" type="web_comm_server_node" args="98"/>
+    <node name="web_comm_server_node99" pkg="agm_comm" type="web_comm_server_node" args="99"/>
+    <node name="web_comm_server_node100" pkg="agm_comm" type="web_comm_server_node" args="100"/>
+
+    <node name="web_comm_server_node101" pkg="agm_comm" type="web_comm_server_node" args="101"/>
+    <node name="web_comm_server_node102" pkg="agm_comm" type="web_comm_server_node" args="102"/>
+    <node name="web_comm_server_node103" pkg="agm_comm" type="web_comm_server_node" args="103"/>
+    <node name="web_comm_server_node104" pkg="agm_comm" type="web_comm_server_node" args="104"/>
+    <node name="web_comm_server_node105" pkg="agm_comm" type="web_comm_server_node" args="105"/>
+    <node name="web_comm_server_node106" pkg="agm_comm" type="web_comm_server_node" args="106"/>
+    <node name="web_comm_server_node107" pkg="agm_comm" type="web_comm_server_node" args="107"/>
+    <node name="web_comm_server_node108" pkg="agm_comm" type="web_comm_server_node" args="108"/>
+    <node name="web_comm_server_node109" pkg="agm_comm" type="web_comm_server_node" args="109"/>
+    <node name="web_comm_server_node110" pkg="agm_comm" type="web_comm_server_node" args="110"/>
+    <node name="web_comm_server_node111" pkg="agm_comm" type="web_comm_server_node" args="111"/>
+-->
+    <!-- setting up the worker nodes
+    <node name="turtle_agm_worker_node61" pkg="turtle_factory" type="turtle_agm_worker_node" args="668f1a4fe9bcef706b10fc29 move_base TB61 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node62" pkg="turtle_factory" type="turtle_agm_worker_node" args="6695852ceb3f587734a830be move_base TB62 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node63" pkg="turtle_factory" type="turtle_agm_worker_node" args="66970905647a83c0be34859a move_base TB63 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node64" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998ccd853c283c2d053c07 move_base TB64 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node65" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998cdc853c283c2d053c13 move_base TB65 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node66" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998ce7853c283c2d053c1f move_base TB66 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node67" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998cee853c283c2d053c2b move_base TB67 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node68" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998cf9853c283c2d053c37 move_base TB68 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node69" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998d15853c283c2d053c5b move_base TB69 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node70" pkg="turtle_factory" type="turtle_agm_worker_node" args="66998d1b853c283c2d053c67 move_base TB70 668f1a1fe9bcef706b10fbfe" output="screen"/>
+
+    <node name="turtle_agm_worker_node71" pkg="turtle_factory" type="turtle_agm_worker_node" args="669ef2d4131ee66414f7d30a move_base TB71 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node72" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c934f4b602be4340d72643 move_base TB72 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node73" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93505b602be4340d72644 move_base TB73 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node74" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93532b602be4340d72645 move_base TB74 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node75" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9353cb602be4340d72646 move_base TB75 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node76" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93549b602be4340d72647 move_base TB76 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node77" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93554b602be4340d72648 move_base TB77 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node78" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9355cb602be4340d72649 move_base TB78 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node79" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93567b602be4340d7264a move_base TB79 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node80" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9356fb602be4340d7264b move_base TB80 668f1a1fe9bcef706b10fbfe" output="screen"/>
+
+    <node name="turtle_agm_worker_node81" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9358bb602be4340d7264c move_base TB81 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node82" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93594b602be4340d7264d move_base TB82 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node83" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93599b602be4340d7264e move_base TB83 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node84" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9359fb602be4340d7264f move_base TB84 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node85" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935a4b602be4340d72650 move_base TB85 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node86" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935abb602be4340d72651 move_base TB86 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node87" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935afb602be4340d72652 move_base TB87 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node88" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935b4b602be4340d72653 move_base TB88 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node89" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935b9b602be4340d72654 move_base TB89 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node90" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935bfb602be4340d72655 move_base TB90 668f1a1fe9bcef706b10fbfe" output="screen"/>
+
+    <node name="turtle_agm_worker_node91" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935c5b602be4340d72656 move_base TB91 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node92" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935cab602be4340d72657 move_base TB92 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node93" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935d0b602be4340d72658 move_base TB93 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node94" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935d5b602be4340d72659 move_base TB94 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node95" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935ddb602be4340d7265a move_base TB95 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node96" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935e2b602be4340d7265b move_base TB96 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node97" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935e7b602be4340d7265c move_base TB97 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node98" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935edb602be4340d7265d move_base TB98 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node99" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935f3b602be4340d7265e move_base TB99 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node100" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c935fab602be4340d7265f move_base TB100 668f1a1fe9bcef706b10fbfe" output="screen"/>
+
+    <node name="turtle_agm_worker_node101" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93604b602be4340d72660 move_base TB101 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node102" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9360cb602be4340d72661 move_base TB102 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node103" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93612b602be4340d72662 move_base TB103 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node104" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93616b602be4340d72663 move_base TB104 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node105" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9361bb602be4340d72664 move_base TB105 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node106" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93620b602be4340d72665 move_base TB106 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node107" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93625b602be4340d72666 move_base TB107 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node108" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c9362bb602be4340d72667 move_base TB108 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node109" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93631b602be4340d72668 move_base TB109 668f1a1fe9bcef706b10fbfe" output="screen"/>
+    <node name="turtle_agm_worker_node110" pkg="turtle_factory" type="turtle_agm_worker_node" args="66c93639b602be4340d72669 move_base TB110 668f1a1fe9bcef706b10fbfe" output="screen"/>
+
+    <node name="turtle_agm_worker_node111" pkg="turtle_factory" type="turtle_agm_worker_node" args="66cb3d32b602be4340d7266a move_base TB111 668f1a1fe9bcef706b10fbfe" output="screen"/>
+-->
+</launch>

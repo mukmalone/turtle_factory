@@ -29,6 +29,7 @@ class Robot_Class
 
 public:
   std::string key;
+  std::string owner;
   std::string move_base;
   std::string name;
   ros::NodeHandle n;
@@ -59,8 +60,9 @@ public:
 
 void Robot_Class::agm_comm()
 {
-  ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm");
+  ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm" + name.substr(2, 2));
   job.request.key = key;
+  job.request.owner = owner;
   agmClient.call(job);
 }
 
@@ -154,7 +156,7 @@ void Robot_Class::move(float posX, float posY, float posZ, float orientX, float 
 void Robot_Class::robot_at_goal()
 {
   // check if we are at the goal within tolerance
-  float dx, dy, tolerance = 0.005;
+  float dx, dy, tolerance = 0.01;
   dx = abs(pose.x - goal_x);
   dy = abs(pose.y - goal_y);
 
@@ -202,6 +204,7 @@ int main(int argc, char **argv)
     robot.key = argv[1];
     robot.move_base = argv[2];
     robot.name = argv[3];
+    robot.owner = argv[4];
     robot.robot_connected = 0;
   }
   else
@@ -222,8 +225,8 @@ int main(int argc, char **argv)
     string job = robot.job.request.function;
     int status = robot.job.response.status;
     check = check + 1;
-    cout << to_string(check) + " check" << endl;
-    cout << to_string(counter) + " counter" << endl;
+    //cout << to_string(check) + " check" << endl;
+    //cout << to_string(counter) + " counter" << endl;
     if (factory_complete_status == 1)
     {
       // let's connect to the robot
@@ -235,7 +238,7 @@ int main(int argc, char **argv)
         robot.at_park = false;
       }
 
-      if (job == "START" && counter > 100)
+      if (job == "START" && counter > 200)
       {
         // ready for a new job
         robot.job.request.function = "NEXTJOB";
@@ -294,8 +297,8 @@ int main(int argc, char **argv)
         }
         else if (robot.at_goal && robot.at_goal2 && !robot.at_park)
         {
-          robot.goal_x = 1 ;
-          robot.goal_y = 10;
+          robot.goal_x = sPosX;
+          robot.goal_y = sPosY - 0.6;
           robot.pen_state.request.r = 0;
           robot.pen_state.request.g = 0;
           robot.pen_state.request.b = 0;
@@ -313,10 +316,10 @@ int main(int argc, char **argv)
         else
         {
           // move to source
-          cout << "Moving to source" << endl;
+          //cout << "Moving to source" << endl;
           robot.job.request.function = "MOVEWORKER";
           robot.job.request.location = "source";
-          cout << sPosX << " " << sPosY << " " << sPosZ << " " << sOrientX << " " << sOrientY << " " << sOrientZ << " " << sOrientW << endl;
+          //cout << sPosX << " " << sPosY << " " << sPosZ << " " << sOrientX << " " << sOrientY << " " << sOrientZ << " " << sOrientW << endl;
 
           if (robot.job.request.function == "ERROR")
           {
@@ -339,12 +342,12 @@ int main(int argc, char **argv)
         // either TAKEPART or LOADPART depending on location
         if (robot.job.request.location == "source")
         {
-          cout << "Taking part" << endl;
+          //cout << "Taking part" << endl;
           robot.job.request.function = "TAKEPART";
         }
         else
         {
-          cout << "Loading workstation" << endl;
+          //cout << "Loading workstation" << endl;
           robot.job.request.function = "LOADPART";
         }
         robot.job.request.location = "";
@@ -371,8 +374,8 @@ int main(int argc, char **argv)
         }
         else if (robot.at_goal && robot.at_goal2 && !robot.at_park)
         {
-          robot.goal_x = 1 ;
-          robot.goal_y = 10;
+          robot.goal_x = dPosX;
+          robot.goal_y = dPosY - 0.6;
           robot.pen_state.request.r = 0;
           robot.pen_state.request.g = 0;
           robot.pen_state.request.b = 0;
@@ -389,10 +392,10 @@ int main(int argc, char **argv)
         else
         {
           // move to destination station
-          cout << "Moving to destination" << endl;
+          //cout << "Moving to destination" << endl;
           robot.job.request.function = "MOVEWORKER";
           robot.job.request.location = "destination";
-          cout << dPosX << " " << dPosY << " " << dPosZ << " " << dOrientX << " " << dOrientY << " " << dOrientZ << " " << dOrientW << endl;
+          //cout << dPosX << " " << dPosY << " " << dPosZ << " " << dOrientX << " " << dOrientY << " " << dOrientZ << " " << dOrientW << endl;
 
           if (robot.job.request.function == "ERROR")
           {
@@ -414,7 +417,7 @@ int main(int argc, char **argv)
       else if (job == "LOADPART" && status == 1)
       {
         // archive job
-        cout << "Archiving job" << endl;
+        //cout << "Archiving job" << endl;
         robot.job.request.function = "ARCHIVEJOB";
         robot.job.request.location = "";
         robot_moved_source = 0;
@@ -444,7 +447,7 @@ int main(int argc, char **argv)
           robot.job.request.location = "";
         }
 
-        if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || (status == 0 && job == "NEXTJOB"))
+        if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || status == 10006 || status == 10007 || status == 10008 || status == 10009 ||(status == 0 && job == "NEXTJOB"))
         {
           // there wasn't a job to do, reset and ask again
           robot.job.request.function = "START";

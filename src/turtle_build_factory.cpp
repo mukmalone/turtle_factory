@@ -10,7 +10,7 @@
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
 #include <string>
-
+#include <turtlesim/Kill.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
@@ -85,7 +85,7 @@ void Robot_Class::spawn_robot()
 {
     // This class will spawn the turtle and turn-off the pen
     turtlesim::Spawn turtle;
-    turtle.request.x = 1 + (0.2 * robot_num);
+    turtle.request.x = 1 ;
     turtle.request.y = 10.0;
     turtle.request.theta = 1.57;
     turtle.request.name = robot_name;
@@ -165,18 +165,61 @@ bool Robot_Class::robot_at_goal()
 
 int main(int argc, char **argv)
 {
+        //simulation instance
+    string sim_namespace;
+    if (argc > 1)
+    {
+        sim_namespace = argv[1];
+    }
+    else
+    {
+        sim_namespace = "";
+    }
+
     ros::init(argc, argv, "turtle_build_factory");
     ros::NodeHandle n;
 
-    ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/turtle1/teleport_absolute");
-    ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/turtle1/set_pen");
-    ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 10);
+    //wait for spawn service so we know turtlesim is up
+    ros::service::waitForService("/spawn");
+    
+    //kill turtle1 the default turtle
+    turtlesim::Kill turtle_to_kill;    
+    turtle_to_kill.request.name = "turtle1";    
+    ros::ServiceClient kill = n.serviceClient<turtlesim::Kill>("/kill");
+    kill.call(turtle_to_kill);
+
+    // Declare a variable to store the turtle's name who will draw the factory
+    string turtle_name;
+    // Try to get the parameter from the parameter server
+    if (n.getParam("turtle_name", turtle_name))
+    {
+        cout<<"Turtle name: " + turtle_name<< endl;
+    }
+    else
+    {
+        turtle_name = "turtle1"; // Default name if not set
+    }
+
+    // This class will spawn the turtle and turn-off the pen
+    turtlesim::Spawn turtle;
+    turtle.request.x = 1.0 ;
+    turtle.request.y = 1.0;
+    turtle.request.theta = 1.57;
+    turtle.request.name = turtle_name;
+    ros::ServiceClient spawn_turtle = n.serviceClient<turtlesim::Spawn>("/spawn");
+    spawn_turtle.call(turtle);
+
+    ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/"+turtle_name+"/teleport_absolute");
+    ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/"+turtle_name+"/set_pen");
+    ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>(""+turtle_name+"/cmd_vel", 10);
     ros::Publisher factory_complete_pub = n.advertise<std_msgs::Int64>("factory_complete", 10);
 
     // setup number of turtlebots
     int num_turtlebots;
+    int start_num;
     string turtlebot_names = "";
     n.getParam("/num_turtlebots", num_turtlebots);
+    n.getParam("/start_num", start_num);
     Robot_Class robot[num_turtlebots];
 
     // broadcast factory is not yet completed
@@ -317,13 +360,13 @@ int main(int argc, char **argv)
 
                 for (int i = 0; i < num_turtlebots; i++)
                 {
-                    if (i + 1 < 10)
+                    if ((i + 1 + (start_num)) < 10)
                     {
-                        robot[i].robot_name = turtlebot_names + "0" + to_string(i + 1);
+                        robot[i].robot_name = turtlebot_names + "0" + to_string(i + 1 + start_num);
                     }
                     else
                     {
-                        robot[i].robot_name = turtlebot_names + to_string(i + 1);
+                        robot[i].robot_name = turtlebot_names + to_string(i + 1 + start_num);
                     }
                     robot[i].robot_num = i + 1;
                     robot[i].spawn_robot();
