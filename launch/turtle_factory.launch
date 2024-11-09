@@ -6,7 +6,7 @@
     <!-- setting up the workstations  -->
     <param name="/num_rows_workstations" type="double" value="1.0" />
     <!--5-->
-    <param name="/num_workstations" type="double" value="10.0" />    
+    <param name="/num_workstations" type="double" value="1.0" />    
     <!--10-->
     <param name="/num_buffers" type="double" value="2.0" />
     
