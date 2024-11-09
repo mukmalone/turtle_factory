@@ -24,7 +24,7 @@ void factory_complete_Callback(const std_msgs::Int64::ConstPtr &msg)
   factory_complete_status = msg->data;
 }
 
-class Robot_Class
+class Workstation_Class
 {
 
 public:
@@ -40,7 +40,7 @@ public:
   ros::ServiceClient pen;
   turtlesim::Pose pose;
   turtlesim::SetPen pen_state;
-  int robot_connected;
+  int workstation_connected;
 
   float goal_x;
   float goal_y;
@@ -48,17 +48,17 @@ public:
   bool at_goal;
   // this goal is for marking the part in or out of station
   bool at_goal2;
-  // this goal is to park robot
+  // this goal is to park workstation
   bool at_park;
 
   void agm_comm();
-  void connect_robot();
+  void connect_workstation();
   void move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW);
   void poseCallback(const turtlesim::Pose::ConstPtr &msg);
-  void robot_at_goal();
+  void workstation_at_goal();
 };
 
-void Robot_Class::agm_comm()
+void Workstation_Class::agm_comm()
 {
   ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm" + name.substr(2, 2));
   job.request.key = key;
@@ -66,7 +66,7 @@ void Robot_Class::agm_comm()
   agmClient.call(job);
 }
 
-void Robot_Class::poseCallback(const turtlesim::Pose::ConstPtr &msg)
+void Workstation_Class::poseCallback(const turtlesim::Pose::ConstPtr &msg)
 {
   // populate pose for movement
   pose.x = msg->x;
@@ -93,9 +93,9 @@ void Robot_Class::poseCallback(const turtlesim::Pose::ConstPtr &msg)
   br.sendTransform(transformStamped);
 }
 
-void Robot_Class::connect_robot()
+void Workstation_Class::connect_workstation()
 {
-  subscriber_pose = n.subscribe<turtlesim::Pose>("/" + name + "/pose", 5, &Robot_Class::poseCallback, this);
+  subscriber_pose = n.subscribe<turtlesim::Pose>("/" + name + "/pose", 5, &Worksatation_Class::poseCallback, this);
   cmd_vel = n.advertise<geometry_msgs::Twist>(name + "/cmd_vel", 10);
 
   // initiate the values of the control command to zero where needed
@@ -111,10 +111,10 @@ void Robot_Class::connect_robot()
   pen_state.request.width = 2;
   pen = n.serviceClient<turtlesim::SetPen>("/" + name + "/set_pen");
   pen.call(pen_state);
-  robot_connected = 1;
+  workstation_connected = 1;
 }
 
-void Robot_Class::move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW)
+void Workstation_Class::move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW)
 {
   //cout << "Trying to move to X: " + to_string(posX) + " Y: " + to_string(posY) << endl;
   goal_x = posX;
@@ -154,7 +154,7 @@ void Robot_Class::move(float posX, float posY, float posZ, float orientX, float 
   cmd_vel.publish(control_command);
 };
 
-void Robot_Class::robot_at_goal()
+void Workstation_Class::workstation_at_goal()
 {
   // check if we are at the goal within tolerance
   float dx, dy, tolerance = 0.01;
@@ -191,30 +191,30 @@ void output(int in)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "turtle_agm_worker_node");
+  ros::init(argc, argv, "turtle_agm_workstation_node");
   ros::NodeHandle n;
   ros::Subscriber factory_complete = n.subscribe("factory_complete", 100, factory_complete_Callback);
-  Robot_Class robot;
-  int robot_moved_source = 0;
-  int robot_moved_dest = 0;
+  Workstation_Class workstation;
+  int workstation_moved_source = 0;
+  int workstation_moved_dest = 0;
   int counter = 0;
   int check = 0;
 
   if (argc > 1)
   {
-    robot.key = argv[1];
-    robot.move_base = argv[2];
-    robot.name = argv[3];
-    robot.owner = argv[4];
-    robot.robot_connected = 0;
+    workstation.key = argv[1];
+    workstation.move_base = argv[2];
+    workstation.name = argv[3];
+    workstation.owner = argv[4];
+    workstation.workstation_connected = 0;
   }
   else
   {
-    cout << "No key defined for the robot interface" << endl;
+    cout << "No key defined for the workstation interface" << endl;
   }
 
   // find next job
-  robot.job.request.function = "START";
+  workstation.job.request.function = "START";
   // source coordinates
   float sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW;
   // destination coordinates
@@ -225,202 +225,202 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(20);
   while (ros::ok())
   {
-    string job = robot.job.request.function;
-    int status = robot.job.response.status;
+    string job = workstation.job.request.function;
+    int status = workstation.job.response.status;
     check = check + 1;
     //cout << to_string(check) + " check" << endl;
     //cout << to_string(counter) + " counter" << endl;
     if (factory_complete_status == 1)
     {
-      // let's connect to the robot
-      if (robot.robot_connected == 0)
+      // let's connect to the workstation
+      if (workstation.workstation_connected == 0)
       {
-        robot.connect_robot();
-        robot.at_goal = false;
-        robot.at_goal2 = false;
-        robot.at_park = false;
+        workstation.connect_workstation();
+        workstation.at_goal = false;
+        workstation.at_goal2 = false;
+        workstation.at_park = false;
       }
 
       if (job == "START" && counter > 200)
       {
         // ready for a new job
-        robot.job.request.function = "NEXTJOB";
-        robot.job.request.location = "";
-        robot_moved_source = 0;
-        robot_moved_dest = 0;
-        robot.at_goal = false;
-        robot.at_goal2 = false;
-        robot.at_park = false;
+        workstation.job.request.function = "NEXTJOB";
+        workstation.job.request.location = "";
+        workstation_moved_source = 0;
+        workstation_moved_dest = 0;
+        workstation.at_goal = false;
+        workstation.at_goal2 = false;
+        workstation.at_park = false;
         counter = 0;
-        robot.agm_comm();
+        workstation.agm_comm();
       }
       else if (job == "NEXTJOB" && status == 1)
       {
         // we have a new job to be activated
         cout << "Found next job and activating" << endl;
         // source
-        sPosX = robot.job.response.sourcePosX;
-        sPosY = robot.job.response.sourcePosY;
-        sPosZ = robot.job.response.sourcePosZ;
-        sOrientX = robot.job.response.sourceOrientX;
-        sOrientY = robot.job.response.sourceOrientY;
-        sOrientZ = robot.job.response.sourceOrientZ;
-        sOrientW = robot.job.response.sourceOrientW;
+        sPosX = workstation.job.response.sourcePosX;
+        sPosY = workstation.job.response.sourcePosY;
+        sPosZ = workstation.job.response.sourcePosZ;
+        sOrientX = workstation.job.response.sourceOrientX;
+        sOrientY = workstation.job.response.sourceOrientY;
+        sOrientZ = workstation.job.response.sourceOrientZ;
+        sOrientW = workstation.job.response.sourceOrientW;
         // destination
-        dPosX = robot.job.response.destPosX;
-        dPosY = robot.job.response.destPosY;
-        dPosZ = robot.job.response.destPosZ;
-        dOrientX = robot.job.response.destOrientX;
-        dOrientY = robot.job.response.destOrientY;
-        dOrientZ = robot.job.response.destOrientZ;
-        dOrientW = robot.job.response.destOrientW;
+        dPosX = workstation.job.response.destPosX;
+        dPosY = workstation.job.response.destPosY;
+        dPosZ = workstation.job.response.destPosZ;
+        dOrientX = workstation.job.response.destOrientX;
+        dOrientY = workstation.job.response.destOrientY;
+        dOrientZ = workstation.job.response.destOrientZ;
+        dOrientW = workstation.job.response.destOrientW;
         // tools
-        tools = robot.job.response.tools;
+        tools = workstation.job.response.tools;
         cout<<tools<<endl;
         //program
-        program = robot.job.response.program;
+        program = workstation.job.response.program;
         cout<<program<<endl;
 
-        robot.job.request.function = "ACTIVATEJOB";
-        robot.job.request.location = "";
-        robot.agm_comm();
+        workstation.job.request.function = "ACTIVATEJOB";
+        workstation.job.request.location = "";
+        workstation.agm_comm();
       }
       else if (job == "ACTIVATEJOB" && status == 1)
       {
         // setup goal
-        if (!robot.at_goal && !robot.at_goal2 && !robot.at_park)
+        if (!workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
         {
-          robot.goal_x = sPosX;
-          robot.goal_y = sPosY;
+          workstation.goal_x = sPosX;
+          workstation.goal_y = sPosY;
         }
-        else if (robot.at_goal && !robot.at_goal2 && !robot.at_park)
+        else if (workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
         {
-          robot.goal_x = sPosX;
-          robot.goal_y = sPosY + 0.4;
-          robot.pen_state.request.r = 0;
-          robot.pen_state.request.g = 255;
-          robot.pen_state.request.b = 0;
-          robot.pen_state.request.off = 0;
-          robot.pen_state.request.width = 8;
-          robot.pen.call(robot.pen_state);
+          workstation.goal_x = sPosX;
+          workstation.goal_y = sPosY + 0.4;
+          workstation.pen_state.request.r = 0;
+          workstation.pen_state.request.g = 255;
+          workstation.pen_state.request.b = 0;
+          workstation.pen_state.request.off = 0;
+          workstation.pen_state.request.width = 8;
+          workstation.pen.call(workstation.pen_state);
         }
-        else if (robot.at_goal && robot.at_goal2 && !robot.at_park)
+        else if (workstation.at_goal && workstation.at_goal2 && !workstation.at_park)
         {
-          robot.goal_x = sPosX;
-          robot.goal_y = sPosY - 0.6;
-          robot.pen_state.request.r = 0;
-          robot.pen_state.request.g = 0;
-          robot.pen_state.request.b = 0;
-          robot.pen_state.request.off = 1;
-          robot.pen.call(robot.pen_state);
-          robot.at_park = true;
+          workstation.goal_x = sPosX;
+          workstation.goal_y = sPosY - 0.6;
+          workstation.pen_state.request.r = 0;
+          workstation.pen_state.request.g = 0;
+          workstation.pen_state.request.b = 0;
+          workstation.pen_state.request.off = 1;
+          workstation.pen.call(workstation.pen_state);
+          workstation.at_park = true;
         }
 
-        // MOVING ROBOT
-        //cout << robot.job.response.program << endl;
-        //cout << robot.job.response.tools << endl;
-        robot.robot_at_goal();
-        if ((!robot.at_goal || !robot.at_goal2 || !robot.at_park) && !robot_moved_source)
+        // MOVING workstation
+        //cout << workstation.job.response.program << endl;
+        //cout << workstation.job.response.tools << endl;
+        workstation.workstation_at_goal();
+        if ((!workstation.at_goal || !workstation.at_goal2 || !workstation.at_park) && !workstation_moved_source)
         {
-          robot.move(robot.goal_x, robot.goal_y, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
+          workstation.move(workstation.goal_x, workstation.goal_y, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
         }
         else
         {
           // move to source
           //cout << "Moving to source" << endl;
-          robot.job.request.function = "MOVEWORKER";
-          robot.job.request.location = "source";
+          workstation.job.request.function = "MOVEWORKER";
+          workstation.job.request.location = "source";
           //cout << sPosX << " " << sPosY << " " << sPosZ << " " << sOrientX << " " << sOrientY << " " << sOrientZ << " " << sOrientW << endl;
 
-          if (robot.job.request.function == "ERROR")
+          if (workstation.job.request.function == "ERROR")
           {
             cout << "We have an error moving" << endl;
           }
           else
           {
-            robot.pen_state.request.off = 1;
-            robot.pen.call(robot.pen_state);
-            robot_moved_source = 1;
-            robot.at_goal = false;
-            robot.at_goal2 = false;
-            robot.at_park = false;
-            robot.agm_comm();
+            workstation.pen_state.request.off = 1;
+            workstation.pen.call(workstation.pen_state);
+            workstation_moved_source = 1;
+            workstation.at_goal = false;
+            workstation.at_goal2 = false;
+            workstation.at_park = false;
+            workstation.agm_comm();
           }
         }
       }
       else if (job == "MOVEWORKER" && status == 1)
       {
         // either TAKEPART or LOADPART depending on location
-        if (robot.job.request.location == "source")
+        if (workstation.job.request.location == "source")
         {
           //cout << "Taking part" << endl;
-          robot.job.request.function = "TAKEPART";
+          workstation.job.request.function = "TAKEPART";
         }
         else
         {
           //cout << "Loading workstation" << endl;
-          robot.job.request.function = "LOADPART";
+          workstation.job.request.function = "LOADPART";
         }
-        robot.job.request.location = "";
-        robot.agm_comm();
+        workstation.job.request.location = "";
+        workstation.agm_comm();
       }
       else if (job == "TAKEPART" && status == 1)
       {
         // setup goal
-        if (!robot.at_goal && !robot.at_goal2 && !robot.at_park)
+        if (!workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
         {
-          robot.goal_x = dPosX;
-          robot.goal_y = dPosY;
+          workstation.goal_x = dPosX;
+          workstation.goal_y = dPosY;
         }
-        else if (robot.at_goal && !robot.at_goal2 && !robot.at_park)
+        else if (workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
         {
-          robot.goal_x = dPosX;
-          robot.goal_y = dPosY + 0.4;
-          robot.pen_state.request.r = 255;
-          robot.pen_state.request.g = 0;
-          robot.pen_state.request.b = 0;
-          robot.pen_state.request.off = 0;
-          robot.pen_state.request.width = 4;
-          robot.pen.call(robot.pen_state);
+          workstation.goal_x = dPosX;
+          workstation.goal_y = dPosY + 0.4;
+          workstation.pen_state.request.r = 255;
+          workstation.pen_state.request.g = 0;
+          workstation.pen_state.request.b = 0;
+          workstation.pen_state.request.off = 0;
+          workstation.pen_state.request.width = 4;
+          workstation.pen.call(workstation.pen_state);
         }
-        else if (robot.at_goal && robot.at_goal2 && !robot.at_park)
+        else if (workstation.at_goal && workstation.at_goal2 && !workstation.at_park)
         {
-          robot.goal_x = dPosX;
-          robot.goal_y = dPosY - 0.6;
-          robot.pen_state.request.r = 0;
-          robot.pen_state.request.g = 0;
-          robot.pen_state.request.b = 0;
-          robot.pen_state.request.off = 1;
-          robot.pen.call(robot.pen_state);
+          workstation.goal_x = dPosX;
+          workstation.goal_y = dPosY - 0.6;
+          workstation.pen_state.request.r = 0;
+          workstation.pen_state.request.g = 0;
+          workstation.pen_state.request.b = 0;
+          workstation.pen_state.request.off = 1;
+          workstation.pen.call(workstation.pen_state);
         }
 
-        // MOVE ROBOT
-        robot.robot_at_goal();
-        if ((!robot.at_goal || !robot.at_goal2 || !robot.at_park) && !robot_moved_dest)
+        // MOVE workstation
+        workstation.workstation_at_goal();
+        if ((!workstation.at_goal || !workstation.at_goal2 || !workstation.at_park) && !workstation_moved_dest)
         {
-          robot.move(robot.goal_x, robot.goal_y, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
+          workstation.move(workstation.goal_x, workstation.goal_y, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
         }
         else
         {
           // move to destination station
           //cout << "Moving to destination" << endl;
-          robot.job.request.function = "MOVEWORKER";
-          robot.job.request.location = "destination";
+          workstation.job.request.function = "MOVEWORKER";
+          workstation.job.request.location = "destination";
           //cout << dPosX << " " << dPosY << " " << dPosZ << " " << dOrientX << " " << dOrientY << " " << dOrientZ << " " << dOrientW << endl;
 
-          if (robot.job.request.function == "ERROR")
+          if (workstation.job.request.function == "ERROR")
           {
             cout << "We have an error moving" << endl;
           }
           else
           {
-            robot.pen_state.request.off = 1;
-            robot.pen.call(robot.pen_state);
-            robot_moved_dest = 1;
-            robot.at_goal = false;
-            robot.at_goal2 = false;
-            robot.at_park = false;
-            robot.agm_comm();
+            workstation.pen_state.request.off = 1;
+            workstation.pen.call(workstation.pen_state);
+            workstation_moved_dest = 1;
+            workstation.at_goal = false;
+            workstation.at_goal2 = false;
+            workstation.at_park = false;
+            workstation.agm_comm();
           }
         }
         //
@@ -429,39 +429,39 @@ int main(int argc, char **argv)
       {
         // archive job
         //cout << "Archiving job" << endl;
-        robot.job.request.function = "ARCHIVEJOB";
-        robot.job.request.location = "";
-        robot_moved_source = 0;
-        robot_moved_dest = 0;
-        robot.agm_comm();
+        workstation.job.request.function = "ARCHIVEJOB";
+        workstation.job.request.location = "";
+        workstation_moved_source = 0;
+        workstation_moved_dest = 0;
+        workstation.agm_comm();
       }
       else if (job == "ARCHIVEJOB" && status == 1)
       {
         // start over
-        robot.job.request.function = "START";
-        robot.job.request.location = "";
-        robot_moved_source = 0;
-        robot_moved_dest = 0;
+        workstation.job.request.function = "START";
+        workstation.job.request.location = "";
+        workstation_moved_source = 0;
+        workstation_moved_dest = 0;
         cout << "Start again" << endl;
       }
       else
       {
         // error
-        if (robot.job.request.function != "ERROR")
+        if (workstation.job.request.function != "ERROR")
         {
           //cout << "reset" << endl;
           //cout << job << endl;
           //cout << status << endl;
-          //cout << robot.job.response.name << endl;
+          //cout << workstation.job.response.name << endl;
           // start over
-          robot.job.request.function = "START";
-          robot.job.request.location = "";
+          workstation.job.request.function = "START";
+          workstation.job.request.location = "";
         }
 
         if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || status == 10006 || status == 10007 || status == 10008 || status == 10009 ||(status == 0 && job == "NEXTJOB"))
         {
           // there wasn't a job to do, reset and ask again
-          robot.job.request.function = "START";
+          workstation.job.request.function = "START";
         }
       }
     }
