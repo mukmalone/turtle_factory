@@ -85,7 +85,7 @@ void Robot_Class::spawn_robot()
 {
     // This class will spawn the turtle and turn-off the pen
     turtlesim::Spawn turtle;
-    turtle.request.x = 1 ;
+    turtle.request.x = 1;
     turtle.request.y = 10.0;
     turtle.request.theta = 1.57;
     turtle.request.name = robot_name;
@@ -165,7 +165,7 @@ bool Robot_Class::robot_at_goal()
 
 int main(int argc, char **argv)
 {
-        //simulation instance
+    // simulation instance
     string sim_namespace;
     if (argc > 1)
     {
@@ -179,12 +179,12 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "turtle_build_factory");
     ros::NodeHandle n;
 
-    //wait for spawn service so we know turtlesim is up
+    // wait for spawn service so we know turtlesim is up
     ros::service::waitForService("/spawn");
-    
-    //kill turtle1 the default turtle
-    turtlesim::Kill turtle_to_kill;    
-    turtle_to_kill.request.name = "turtle1";    
+
+    // kill turtle1 the default turtle
+    turtlesim::Kill turtle_to_kill;
+    turtle_to_kill.request.name = "turtle1";
     ros::ServiceClient kill = n.serviceClient<turtlesim::Kill>("/kill");
     kill.call(turtle_to_kill);
 
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
     // Try to get the parameter from the parameter server
     if (n.getParam("turtle_name", turtle_name))
     {
-        cout<<"Turtle name: " + turtle_name<< endl;
+        cout << "Turtle name: " + turtle_name << endl;
     }
     else
     {
@@ -202,25 +202,40 @@ int main(int argc, char **argv)
 
     // This class will spawn the turtle and turn-off the pen
     turtlesim::Spawn turtle;
-    turtle.request.x = 1.0 ;
+    turtle.request.x = 1.0;
     turtle.request.y = 1.0;
     turtle.request.theta = 1.57;
     turtle.request.name = turtle_name;
     ros::ServiceClient spawn_turtle = n.serviceClient<turtlesim::Spawn>("/spawn");
     spawn_turtle.call(turtle);
 
-    ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/"+turtle_name+"/teleport_absolute");
-    ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/"+turtle_name+"/set_pen");
-    ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>(""+turtle_name+"/cmd_vel", 10);
+    ros::ServiceClient move_abs = n.serviceClient<turtlesim::TeleportAbsolute>("/" + turtle_name + "/teleport_absolute");
+    ros::ServiceClient pen = n.serviceClient<turtlesim::SetPen>("/" + turtle_name + "/set_pen");
+    ros::Publisher control_pub = n.advertise<geometry_msgs::Twist>("" + turtle_name + "/cmd_vel", 10);
     ros::Publisher factory_complete_pub = n.advertise<std_msgs::Int64>("factory_complete", 10);
 
-    // setup number of turtlebots
-    int num_turtlebots;
-    int start_num;
-    string turtlebot_names = "";
-    n.getParam("/num_turtlebots", num_turtlebots);
-    n.getParam("/start_num", start_num);
-    Robot_Class robot[num_turtlebots];
+    // setup number of workstations and workers
+    int num_workers, num_workstations;
+    int worker_start_num, workstation_start_num;
+    string worker_names = "";
+    string workstation_names = "";
+    // workers
+    n.getParam("/worker_names", worker_names);
+    n.getParam("/num_workers", num_workers);
+    n.getParam("/worker_start_num", worker_start_num);
+    Robot_Class workers[num_workers];
+
+    // workstations
+    n.getParam("/workstation_names", workstation_names);
+    n.getParam("/num_workstations", num_workstations);
+    n.getParam("/workstation_start_num", workstation_start_num);
+    Robot_Class workstations[num_workers];
+
+    // drawing parameters
+    int num_buffers, num_workstations_per_row, num_rows_workstations;
+    n.getParam("/num_buffers", num_buffers);
+    n.getParam("/num_workstations_per_row", num_workstations_per_row);
+    n.getParam("/num_rows_workstations", num_rows_workstations);
 
     // broadcast factory is not yet completed
     std_msgs::Int64 factory_complete;
@@ -239,11 +254,6 @@ int main(int argc, char **argv)
             pen_state.request.off = 1;
             pen_state.request.width = 3;
 
-            int num_buffers, num_workstations, num_rows_workstations;
-            n.getParam("/num_buffers", num_buffers);
-            n.getParam("/num_workstations", num_workstations);
-            n.getParam("/num_rows_workstations", num_rows_workstations);
-
             if (pen.call(pen_state))
             {
                 turtlesim::TeleportAbsolute coordinates;
@@ -260,7 +270,7 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-                        draw_loop_size = num_workstations;
+                        draw_loop_size = num_workstations_per_row;
                         row_loop_size = num_rows_workstations;
                     }
 
@@ -290,7 +300,7 @@ int main(int argc, char **argv)
                             }
                             else if (j == 1)
                             {
-                                origin_x = 1 + (i * (10.0 / num_workstations));
+                                origin_x = 1 + (i * (10.0 / num_workstations_per_row));
                                 origin_y = 2 + (k * (8.0 / num_rows_workstations));
                                 cout << to_string(i) << endl;
                                 cout << to_string(origin_x) << endl;
@@ -355,43 +365,48 @@ int main(int argc, char **argv)
                 pen_state.request.width = 2;
                 pen.call(pen_state);
 
-                // setup turtlebots workers
-                n.getParam("/turtle_names", turtlebot_names);
+                turtle_to_kill.request.name = turtle_name;
+                ros::ServiceClient kill = n.serviceClient<turtlesim::Kill>("/kill");
+                kill.call(turtle_to_kill);
 
-                for (int i = 0; i < num_turtlebots; i++)
+                // setup turtlebots workers
+                for (int i = 0; i < num_workers; i++)
                 {
-                    if ((i + 1 + (start_num)) < 10)
+                    if ((i + 1 + (worker_start_num)) < 10)
                     {
-                        robot[i].robot_name = turtlebot_names + "0" + to_string(i + 1 + start_num);
+                        workers[i].robot_name = worker_names + "0" + to_string(i + 1 + worker_start_num);
                     }
                     else
                     {
-                        robot[i].robot_name = turtlebot_names + to_string(i + 1 + start_num);
+                        workers[i].robot_name = worker_names + to_string(i + 1 + worker_start_num);
                     }
-                    robot[i].robot_num = i + 1;
-                    robot[i].spawn_robot();
+                    workers[i].robot_num = i + 1;
+                    workers[i].spawn_robot();
                     factory_complete_pub.publish(factory_complete);
                 }
+
+                // setup turtlebots workstations
+                for (int i = 0; i < num_workstations; i++)
+                {
+                    if ((i + 1 + (workstation_start_num)) < 10)
+                    {
+                        workstations[i].robot_name = workstation_names + "0" + to_string(i + 1 + workstation_start_num);
+                    }
+                    else
+                    {
+                        workstations[i].robot_name = workstation_names + to_string(i + 1 + workstation_start_num);
+                    }
+                    workstations[i].robot_num = i + 1;
+                    workstations[i].spawn_robot();
+                    factory_complete_pub.publish(factory_complete);
+                }
+
                 ++executed;
                 // get ready to broadcast the factory is complete
                 factory_complete.data = 1;
             }
         }
 
-        // cycle through each party turtle.  if it is at the goal, get a new one
-        // if it is not, keep moving towards the goal
-        for (int i = 0; i < num_turtlebots; i++)
-        {
-            if (!robot[i].robot_at_goal())
-            {
-                // robot[i].move_robot();
-            }
-            else
-            {
-                // robot[i].get_goal();
-            }
-        }
-        // party_pub.publish(num);
         factory_complete_pub.publish(factory_complete);
         ros::spinOnce();
         loop_rate.sleep();

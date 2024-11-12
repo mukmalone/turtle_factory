@@ -60,7 +60,7 @@ public:
 
 void Workstation_Class::agm_comm()
 {
-  ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm" + name.substr(2, 2));
+  ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm" + name);
   job.request.key = key;
   job.request.owner = owner;
   agmClient.call(job);
@@ -95,8 +95,9 @@ void Workstation_Class::poseCallback(const turtlesim::Pose::ConstPtr &msg)
 
 void Workstation_Class::connect_workstation()
 {
-  subscriber_pose = n.subscribe<turtlesim::Pose>("/" + name + "/pose", 5, &Worksatation_Class::poseCallback, this);
-  cmd_vel = n.advertise<geometry_msgs::Twist>(name + "/cmd_vel", 10);
+  subscriber_pose = n.subscribe<turtlesim::Pose>("/" + name + "/pose", 5, &Workstation_Class::poseCallback, this);
+  cmd_vel = n.advertise<geometry_msgs::Twist>("/" + name + "/cmd_vel", 10);
+  cout<<"name: " <<name<<endl;
 
   // initiate the values of the control command to zero where needed
   control_command.linear.y = 0.0;
@@ -116,11 +117,11 @@ void Workstation_Class::connect_workstation()
 
 void Workstation_Class::move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW)
 {
-  //cout << "Trying to move to X: " + to_string(posX) + " Y: " + to_string(posY) << endl;
+  cout << "Trying to move to X: " + to_string(posX) + " Y: " + to_string(posY) << endl;
   goal_x = posX;
   goal_y = posY;
-  //cout << "Current position X: " + to_string(pose.x) + " Y: " + to_string(pose.y) << endl;
-  
+  cout << "Current position X: " + to_string(pose.x) + " Y: " + to_string(pose.y) << endl;
+
   // tell the action client that we want to spin a thread by default
 
   float angle = atan2(posY - pose.y, posX - pose.x) - pose.theta;
@@ -195,8 +196,7 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
   ros::Subscriber factory_complete = n.subscribe("factory_complete", 100, factory_complete_Callback);
   Workstation_Class workstation;
-  int workstation_moved_source = 0;
-  int workstation_moved_dest = 0;
+  int workstation_completed = 0;
   int counter = 0;
   int check = 0;
 
@@ -215,12 +215,10 @@ int main(int argc, char **argv)
 
   // find next job
   workstation.job.request.function = "START";
-  // source coordinates
+  // workstation coordinates
   float sPosX, sPosY, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW;
-  // destination coordinates
-  float dPosX, dPosY, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW;
-  // tools and programs
-  string tools, program;
+  // tools and programs and poNum
+  string tools, program, poNum;
 
   ros::Rate loop_rate(20);
   while (ros::ok())
@@ -228,8 +226,6 @@ int main(int argc, char **argv)
     string job = workstation.job.request.function;
     int status = workstation.job.response.status;
     check = check + 1;
-    //cout << to_string(check) + " check" << endl;
-    //cout << to_string(counter) + " counter" << endl;
     if (factory_complete_status == 1)
     {
       // let's connect to the workstation
@@ -244,17 +240,19 @@ int main(int argc, char **argv)
       if (job == "START" && counter > 200)
       {
         // ready for a new job
-        workstation.job.request.function = "NEXTJOB";
+        workstation.job.request.function = "WORKSTATIONSTATUS";
         workstation.job.request.location = "";
-        workstation_moved_source = 0;
-        workstation_moved_dest = 0;
+        workstation.job.request.poNum = "";
+        workstation.job.request.stationStatus = "";
+        workstation.job.request.stepStatus = "";
+        workstation_completed = 0;
         workstation.at_goal = false;
         workstation.at_goal2 = false;
         workstation.at_park = false;
         counter = 0;
         workstation.agm_comm();
       }
-      else if (job == "NEXTJOB" && status == 1)
+      else if (job == "WORKSTATIONSTATUS" && status == 1)
       {
         // we have a new job to be activated
         cout << "Found next job and activating" << endl;
@@ -266,27 +264,13 @@ int main(int argc, char **argv)
         sOrientY = workstation.job.response.sourceOrientY;
         sOrientZ = workstation.job.response.sourceOrientZ;
         sOrientW = workstation.job.response.sourceOrientW;
-        // destination
-        dPosX = workstation.job.response.destPosX;
-        dPosY = workstation.job.response.destPosY;
-        dPosZ = workstation.job.response.destPosZ;
-        dOrientX = workstation.job.response.destOrientX;
-        dOrientY = workstation.job.response.destOrientY;
-        dOrientZ = workstation.job.response.destOrientZ;
-        dOrientW = workstation.job.response.destOrientW;
         // tools
         tools = workstation.job.response.tools;
-        cout<<tools<<endl;
-        //program
+        // program
         program = workstation.job.response.program;
-        cout<<program<<endl;
+        //poNum
+        poNum = workstation.job.response.poNum;
 
-        workstation.job.request.function = "ACTIVATEJOB";
-        workstation.job.request.location = "";
-        workstation.agm_comm();
-      }
-      else if (job == "ACTIVATEJOB" && status == 1)
-      {
         // setup goal
         if (!workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
         {
@@ -298,39 +282,37 @@ int main(int argc, char **argv)
           workstation.goal_x = sPosX;
           workstation.goal_y = sPosY + 0.4;
           workstation.pen_state.request.r = 0;
-          workstation.pen_state.request.g = 255;
-          workstation.pen_state.request.b = 0;
+          workstation.pen_state.request.g = 0;
+          workstation.pen_state.request.b = 255;
           workstation.pen_state.request.off = 0;
           workstation.pen_state.request.width = 8;
           workstation.pen.call(workstation.pen_state);
         }
         else if (workstation.at_goal && workstation.at_goal2 && !workstation.at_park)
         {
-          workstation.goal_x = sPosX;
-          workstation.goal_y = sPosY - 0.6;
+          workstation.goal_x = sPosX - 0.6;
+          workstation.goal_y = sPosY;
           workstation.pen_state.request.r = 0;
           workstation.pen_state.request.g = 0;
           workstation.pen_state.request.b = 0;
           workstation.pen_state.request.off = 1;
           workstation.pen.call(workstation.pen_state);
-          workstation.at_park = true;
         }
 
         // MOVING workstation
-        //cout << workstation.job.response.program << endl;
-        //cout << workstation.job.response.tools << endl;
         workstation.workstation_at_goal();
-        if ((!workstation.at_goal || !workstation.at_goal2 || !workstation.at_park) && !workstation_moved_source)
+        if ((!workstation.at_goal || !workstation.at_goal2 || !workstation.at_park) && !workstation_completed)
         {
           workstation.move(workstation.goal_x, workstation.goal_y, sPosZ, sOrientX, sOrientY, sOrientZ, sOrientW);
         }
         else
         {
-          // move to source
-          //cout << "Moving to source" << endl;
-          workstation.job.request.function = "MOVEWORKER";
-          workstation.job.request.location = "source";
-          //cout << sPosX << " " << sPosY << " " << sPosZ << " " << sOrientX << " " << sOrientY << " " << sOrientZ << " " << sOrientW << endl;
+          // move to workstation and perfom action
+          workstation.job.request.function = "WORKSTATIONCOMPLETE";
+          workstation.job.request.location = "";
+          workstation.job.request.poNum = poNum;
+          workstation.job.request.stationStatus = "WAITING";
+          workstation.job.request.stepStatus = "PASS";
 
           if (workstation.job.request.function == "ERROR")
           {
@@ -340,7 +322,7 @@ int main(int argc, char **argv)
           {
             workstation.pen_state.request.off = 1;
             workstation.pen.call(workstation.pen_state);
-            workstation_moved_source = 1;
+            workstation_completed= 1;
             workstation.at_goal = false;
             workstation.at_goal2 = false;
             workstation.at_park = false;
@@ -348,100 +330,16 @@ int main(int argc, char **argv)
           }
         }
       }
-      else if (job == "MOVEWORKER" && status == 1)
-      {
-        // either TAKEPART or LOADPART depending on location
-        if (workstation.job.request.location == "source")
-        {
-          //cout << "Taking part" << endl;
-          workstation.job.request.function = "TAKEPART";
-        }
-        else
-        {
-          //cout << "Loading workstation" << endl;
-          workstation.job.request.function = "LOADPART";
-        }
-        workstation.job.request.location = "";
-        workstation.agm_comm();
-      }
-      else if (job == "TAKEPART" && status == 1)
-      {
-        // setup goal
-        if (!workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
-        {
-          workstation.goal_x = dPosX;
-          workstation.goal_y = dPosY;
-        }
-        else if (workstation.at_goal && !workstation.at_goal2 && !workstation.at_park)
-        {
-          workstation.goal_x = dPosX;
-          workstation.goal_y = dPosY + 0.4;
-          workstation.pen_state.request.r = 255;
-          workstation.pen_state.request.g = 0;
-          workstation.pen_state.request.b = 0;
-          workstation.pen_state.request.off = 0;
-          workstation.pen_state.request.width = 4;
-          workstation.pen.call(workstation.pen_state);
-        }
-        else if (workstation.at_goal && workstation.at_goal2 && !workstation.at_park)
-        {
-          workstation.goal_x = dPosX;
-          workstation.goal_y = dPosY - 0.6;
-          workstation.pen_state.request.r = 0;
-          workstation.pen_state.request.g = 0;
-          workstation.pen_state.request.b = 0;
-          workstation.pen_state.request.off = 1;
-          workstation.pen.call(workstation.pen_state);
-        }
-
-        // MOVE workstation
-        workstation.workstation_at_goal();
-        if ((!workstation.at_goal || !workstation.at_goal2 || !workstation.at_park) && !workstation_moved_dest)
-        {
-          workstation.move(workstation.goal_x, workstation.goal_y, dPosZ, dOrientX, dOrientY, dOrientZ, dOrientW);
-        }
-        else
-        {
-          // move to destination station
-          //cout << "Moving to destination" << endl;
-          workstation.job.request.function = "MOVEWORKER";
-          workstation.job.request.location = "destination";
-          //cout << dPosX << " " << dPosY << " " << dPosZ << " " << dOrientX << " " << dOrientY << " " << dOrientZ << " " << dOrientW << endl;
-
-          if (workstation.job.request.function == "ERROR")
-          {
-            cout << "We have an error moving" << endl;
-          }
-          else
-          {
-            workstation.pen_state.request.off = 1;
-            workstation.pen.call(workstation.pen_state);
-            workstation_moved_dest = 1;
-            workstation.at_goal = false;
-            workstation.at_goal2 = false;
-            workstation.at_park = false;
-            workstation.agm_comm();
-          }
-        }
-        //
-      }
-      else if (job == "LOADPART" && status == 1)
-      {
-        // archive job
-        //cout << "Archiving job" << endl;
-        workstation.job.request.function = "ARCHIVEJOB";
-        workstation.job.request.location = "";
-        workstation_moved_source = 0;
-        workstation_moved_dest = 0;
-        workstation.agm_comm();
-      }
-      else if (job == "ARCHIVEJOB" && status == 1)
+      
+      else if (job == "WORKSTATIONCOMPLETE" && status == 1)
       {
         // start over
-        workstation.job.request.function = "START";
+         workstation.job.request.function = "START";
         workstation.job.request.location = "";
-        workstation_moved_source = 0;
-        workstation_moved_dest = 0;
+        workstation.job.request.poNum = "";
+        workstation.job.request.stationStatus = "";
+        workstation.job.request.stepStatus = "";
+        workstation_completed = 0;
         cout << "Start again" << endl;
       }
       else
@@ -449,16 +347,11 @@ int main(int argc, char **argv)
         // error
         if (workstation.job.request.function != "ERROR")
         {
-          //cout << "reset" << endl;
-          //cout << job << endl;
-          //cout << status << endl;
-          //cout << workstation.job.response.name << endl;
-          // start over
           workstation.job.request.function = "START";
           workstation.job.request.location = "";
         }
 
-        if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || status == 10006 || status == 10007 || status == 10008 || status == 10009 ||(status == 0 && job == "NEXTJOB"))
+        if (status == 10001 || status == 10002 || status == 10003 || status == 10004 || status == 10005 || status == 10006 || status == 10007 || status == 10008 || status == 10009 || (status == 0 && job == "NEXTJOB"))
         {
           // there wasn't a job to do, reset and ask again
           workstation.job.request.function = "START";
@@ -467,7 +360,7 @@ int main(int argc, char **argv)
     }
     else
     {
-      cout << "Factory not ready" << endl;
+      //cout << "Factory not ready" << endl;
     }
     counter += 1;
     ros::spinOnce();

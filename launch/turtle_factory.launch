@@ -3,10 +3,10 @@
     <param name="/sim_num" type="double" value="0.0" />
     <node name="turtlesim_node" pkg="turtlesim" type="turtlesim_node" />
 
-    <!-- setting up the workstations  -->
+    <!-- setting up the workstation drawing paramters  -->
     <param name="/num_rows_workstations" type="double" value="1.0" />
     <!--5-->
-    <param name="/num_workstations" type="double" value="1.0" />    
+    <param name="/num_workstations_per_row" type="double" value="1.0" />    
     <!--10-->
     <param name="/num_buffers" type="double" value="2.0" />
     
@@ -17,69 +17,186 @@
 
     <!-- setting up the turtlebots the first one is always "turtle1"-->
     <param name="turtle_name" type="string" value="FirstTurtleSim0"/>
+
     <param name="/turtle_origin_xy" type="double" value="0.5" />
-    <param name="/num_turtlebots" type="double" value="50.0" />
-    <param name="/start_num" type="double" value="0" />
-    <!--51-->
-    <param name="/turtle_names" type="string" value="TB" />
+
+    <param name="/worker_start_num" type="double" value="0" />
+    <param name="/worker_names" type="string" value="TB" />
+    <param name="/num_workers" type="double" value="50.0" />
+
+    <param name="/workstation_start_num" type="double" value="0" />
+    <param name="/workstation_names" type="string" value="ST"/>
+    <param name="/num_workstations" type="double" value="50.0" />
 
     <node name="turtle_build_factory" pkg="turtle_factory" type="turtle_build_factory" args="0"/>
 
-    <!-- setting up the communication nodes-->
-    <node name="web_comm_server_node1" pkg="agm_comm" type="web_comm_server_node" args="01"/>
-    <node name="web_comm_server_node2" pkg="agm_comm" type="web_comm_server_node" args="02"/>
-    <node name="web_comm_server_node3" pkg="agm_comm" type="web_comm_server_node" args="03"/>
-    <node name="web_comm_server_node4" pkg="agm_comm" type="web_comm_server_node" args="04"/>
-    <node name="web_comm_server_node5" pkg="agm_comm" type="web_comm_server_node" args="05"/>
-    <node name="web_comm_server_node6" pkg="agm_comm" type="web_comm_server_node" args="06"/>
-    <node name="web_comm_server_node7" pkg="agm_comm" type="web_comm_server_node" args="07"/>
-    <node name="web_comm_server_node8" pkg="agm_comm" type="web_comm_server_node" args="08"/>
-    <node name="web_comm_server_node9" pkg="agm_comm" type="web_comm_server_node" args="09"/>
-    <node name="web_comm_server_node10" pkg="agm_comm" type="web_comm_server_node" args="10"/>
 
-    <node name="web_comm_server_node11" pkg="agm_comm" type="web_comm_server_node" args="11"/>
-    <node name="web_comm_server_node12" pkg="agm_comm" type="web_comm_server_node" args="12"/>
-    <node name="web_comm_server_node13" pkg="agm_comm" type="web_comm_server_node" args="13"/>
-    <node name="web_comm_server_node14" pkg="agm_comm" type="web_comm_server_node" args="14"/>
-    <node name="web_comm_server_node15" pkg="agm_comm" type="web_comm_server_node" args="15"/>
-    <node name="web_comm_server_node16" pkg="agm_comm" type="web_comm_server_node" args="16"/>
-    <node name="web_comm_server_node17" pkg="agm_comm" type="web_comm_server_node" args="17"/>
-    <node name="web_comm_server_node18" pkg="agm_comm" type="web_comm_server_node" args="18"/>
-    <node name="web_comm_server_node19" pkg="agm_comm" type="web_comm_server_node" args="19"/>
-    <node name="web_comm_server_node20" pkg="agm_comm" type="web_comm_server_node" args="20"/>
+    <!--workstations-->
+    <node name="web_comm_server_nodeST01" pkg="agm_comm" type="web_comm_server_node" args="ST01" />
+    <node name="web_comm_server_nodeST02" pkg="agm_comm" type="web_comm_server_node" args="ST02" />
+    <node name="web_comm_server_nodeST03" pkg="agm_comm" type="web_comm_server_node" args="ST03" />
+    <node name="web_comm_server_nodeST04" pkg="agm_comm" type="web_comm_server_node" args="ST04" />
+    <node name="web_comm_server_nodeST05" pkg="agm_comm" type="web_comm_server_node" args="ST05" />
+    <node name="web_comm_server_nodeST06" pkg="agm_comm" type="web_comm_server_node" args="ST06" />
+    <node name="web_comm_server_nodeST07" pkg="agm_comm" type="web_comm_server_node" args="ST07" />
+    <node name="web_comm_server_nodeST08" pkg="agm_comm" type="web_comm_server_node" args="ST08" />
+    <node name="web_comm_server_nodeST09" pkg="agm_comm" type="web_comm_server_node" args="ST09" />
+    <node name="web_comm_server_nodeST10" pkg="agm_comm" type="web_comm_server_node" args="ST10" />
 
-    <node name="web_comm_server_node21" pkg="agm_comm" type="web_comm_server_node" args="21"/>
-    <node name="web_comm_server_node22" pkg="agm_comm" type="web_comm_server_node" args="22"/>
-    <node name="web_comm_server_node23" pkg="agm_comm" type="web_comm_server_node" args="23"/>
-    <node name="web_comm_server_node24" pkg="agm_comm" type="web_comm_server_node" args="24"/>
-    <node name="web_comm_server_node25" pkg="agm_comm" type="web_comm_server_node" args="25"/>
-    <node name="web_comm_server_node26" pkg="agm_comm" type="web_comm_server_node" args="26"/>
-    <node name="web_comm_server_node27" pkg="agm_comm" type="web_comm_server_node" args="27"/>
-    <node name="web_comm_server_node28" pkg="agm_comm" type="web_comm_server_node" args="28"/>
-    <node name="web_comm_server_node29" pkg="agm_comm" type="web_comm_server_node" args="29"/>
-    <node name="web_comm_server_node30" pkg="agm_comm" type="web_comm_server_node" args="30"/>
+    <node name="web_comm_server_nodeST11" pkg="agm_comm" type="web_comm_server_node" args="ST11" />
+    <node name="web_comm_server_nodeST12" pkg="agm_comm" type="web_comm_server_node" args="ST12" />
+    <node name="web_comm_server_nodeST13" pkg="agm_comm" type="web_comm_server_node" args="ST13" />
+    <node name="web_comm_server_nodeST14" pkg="agm_comm" type="web_comm_server_node" args="ST14" />
+    <node name="web_comm_server_nodeST15" pkg="agm_comm" type="web_comm_server_node" args="ST15" />
+    <node name="web_comm_server_nodeST16" pkg="agm_comm" type="web_comm_server_node" args="ST16" />
+    <node name="web_comm_server_nodeST17" pkg="agm_comm" type="web_comm_server_node" args="ST17" />
+    <node name="web_comm_server_nodeST18" pkg="agm_comm" type="web_comm_server_node" args="ST18" />
+    <node name="web_comm_server_nodeST19" pkg="agm_comm" type="web_comm_server_node" args="ST19" />
+    <node name="web_comm_server_nodeST20" pkg="agm_comm" type="web_comm_server_node" args="ST20" />
 
-    <node name="web_comm_server_node31" pkg="agm_comm" type="web_comm_server_node" args="31"/>
-    <node name="web_comm_server_node32" pkg="agm_comm" type="web_comm_server_node" args="32"/>
-    <node name="web_comm_server_node33" pkg="agm_comm" type="web_comm_server_node" args="33"/>
-    <node name="web_comm_server_node34" pkg="agm_comm" type="web_comm_server_node" args="34"/>
-    <node name="web_comm_server_node35" pkg="agm_comm" type="web_comm_server_node" args="35"/>
-    <node name="web_comm_server_node36" pkg="agm_comm" type="web_comm_server_node" args="36"/>
-    <node name="web_comm_server_node37" pkg="agm_comm" type="web_comm_server_node" args="37"/>
-    <node name="web_comm_server_node38" pkg="agm_comm" type="web_comm_server_node" args="38"/>
-    <node name="web_comm_server_node39" pkg="agm_comm" type="web_comm_server_node" args="39"/>
-    <node name="web_comm_server_node40" pkg="agm_comm" type="web_comm_server_node" args="40"/>
+    <node name="web_comm_server_nodeST21" pkg="agm_comm" type="web_comm_server_node" args="ST21" />
+    <node name="web_comm_server_nodeST22" pkg="agm_comm" type="web_comm_server_node" args="ST22" />
+    <node name="web_comm_server_nodeST23" pkg="agm_comm" type="web_comm_server_node" args="ST23" />
+    <node name="web_comm_server_nodeST24" pkg="agm_comm" type="web_comm_server_node" args="ST24" />
+    <node name="web_comm_server_nodeST25" pkg="agm_comm" type="web_comm_server_node" args="ST25" />
+    <node name="web_comm_server_nodeST26" pkg="agm_comm" type="web_comm_server_node" args="ST26" />
+    <node name="web_comm_server_nodeST27" pkg="agm_comm" type="web_comm_server_node" args="ST27" />
+    <node name="web_comm_server_nodeST28" pkg="agm_comm" type="web_comm_server_node" args="ST28" />
+    <node name="web_comm_server_nodeST29" pkg="agm_comm" type="web_comm_server_node" args="ST29" />
+    <node name="web_comm_server_nodeST30" pkg="agm_comm" type="web_comm_server_node" args="ST30" />
 
-    <node name="web_comm_server_node41" pkg="agm_comm" type="web_comm_server_node" args="41"/>
-    <node name="web_comm_server_node42" pkg="agm_comm" type="web_comm_server_node" args="42"/>
-    <node name="web_comm_server_node43" pkg="agm_comm" type="web_comm_server_node" args="43"/>
-    <node name="web_comm_server_node44" pkg="agm_comm" type="web_comm_server_node" args="44"/>
-    <node name="web_comm_server_node45" pkg="agm_comm" type="web_comm_server_node" args="45"/>
-    <node name="web_comm_server_node46" pkg="agm_comm" type="web_comm_server_node" args="46"/>
-    <node name="web_comm_server_node47" pkg="agm_comm" type="web_comm_server_node" args="47"/>
-    <node name="web_comm_server_node48" pkg="agm_comm" type="web_comm_server_node" args="48"/>
-    <node name="web_comm_server_node49" pkg="agm_comm" type="web_comm_server_node" args="49"/>
-    <node name="web_comm_server_node50" pkg="agm_comm" type="web_comm_server_node" args="50"/>
+    <node name="web_comm_server_nodeST31" pkg="agm_comm" type="web_comm_server_node" args="ST31" />
+    <node name="web_comm_server_nodeST32" pkg="agm_comm" type="web_comm_server_node" args="ST32" />
+    <node name="web_comm_server_nodeST33" pkg="agm_comm" type="web_comm_server_node" args="ST33" />
+    <node name="web_comm_server_nodeST34" pkg="agm_comm" type="web_comm_server_node" args="ST34" />
+    <node name="web_comm_server_nodeST35" pkg="agm_comm" type="web_comm_server_node" args="ST35" />
+    <node name="web_comm_server_nodeST36" pkg="agm_comm" type="web_comm_server_node" args="ST36" />
+    <node name="web_comm_server_nodeST37" pkg="agm_comm" type="web_comm_server_node" args="ST37" />
+    <node name="web_comm_server_nodeST38" pkg="agm_comm" type="web_comm_server_node" args="ST38" />
+    <node name="web_comm_server_nodeST39" pkg="agm_comm" type="web_comm_server_node" args="ST39" />
+    <node name="web_comm_server_nodeST40" pkg="agm_comm" type="web_comm_server_node" args="ST40" />
+
+    <node name="web_comm_server_nodeST41" pkg="agm_comm" type="web_comm_server_node" args="ST41" />
+    <node name="web_comm_server_nodeST42" pkg="agm_comm" type="web_comm_server_node" args="ST42" />
+    <node name="web_comm_server_nodeST43" pkg="agm_comm" type="web_comm_server_node" args="ST43" />
+    <node name="web_comm_server_nodeST44" pkg="agm_comm" type="web_comm_server_node" args="ST44" />
+    <node name="web_comm_server_nodeST45" pkg="agm_comm" type="web_comm_server_node" args="ST45" />
+    <node name="web_comm_server_nodeST46" pkg="agm_comm" type="web_comm_server_node" args="ST46" />
+    <node name="web_comm_server_nodeST47" pkg="agm_comm" type="web_comm_server_node" args="ST47" />
+    <node name="web_comm_server_nodeST48" pkg="agm_comm" type="web_comm_server_node" args="ST48" />
+    <node name="web_comm_server_nodeST49" pkg="agm_comm" type="web_comm_server_node" args="ST49" />
+    <node name="web_comm_server_nodeST50" pkg="agm_comm" type="web_comm_server_node" args="ST50" />
+
+    <node name="turtle_agm_workstation_nodeST01" pkg="turtle_factory" type="turtle_agm_workstation_node" args="668f1c0de9bcef706b10fc3d move_base ST01 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST02" pkg="turtle_factory" type="turtle_agm_workstation_node" args="669583beeb3f587734a7ef39 move_base ST02 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST03" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998d40853c283c2d053c80 move_base ST03 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST04" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998d5b853c283c2d053c8a move_base ST04 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST05" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998d68853c283c2d053c94 move_base ST05 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST06" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998d75853c283c2d053c9e move_base ST06 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST07" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998d89853c283c2d053ca8 move_base ST07 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST08" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998d96853c283c2d053cb2 move_base ST08 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST09" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998dae853c283c2d053cbc move_base ST09 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST10" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66998dba853c283c2d053cc6 move_base ST10 668f1a1fe9bcef706b10fbfe" />
+
+    <node name="turtle_agm_workstation_nodeST11" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c798cf42b1a32dc4366fcf move_base ST11 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST12" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c798ec42b1a32dc4366fd0 move_base ST12 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST13" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7990742b1a32dc4366fd1 move_base ST13 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST14" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7994442b1a32dc4366fd2 move_base ST14 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST15" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7995442b1a32dc4366fd3 move_base ST15 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST16" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7996342b1a32dc4366fd4 move_base ST16 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST17" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7997442b1a32dc4366fd5 move_base ST17 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST18" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7998e42b1a32dc4366fd6 move_base ST18 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST19" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c799a742b1a32dc4366fd7 move_base ST19 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST20" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c799c342b1a32dc4366fd8 move_base ST20 668f1a1fe9bcef706b10fbfe" />
+
+    <node name="turtle_agm_workstation_nodeST21" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d3a542b1a32dc4366fd9 move_base ST21 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST22" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d3b742b1a32dc4366fda move_base ST22 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST23" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d3d542b1a32dc4366fdb move_base ST23 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST24" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d3e642b1a32dc4366fdc move_base ST24 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST25" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d3f642b1a32dc4366fdd move_base ST25 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST26" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d40642b1a32dc4366fde move_base ST26 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST27" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d41542b1a32dc4366fdf move_base ST27 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST28" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d43842b1a32dc4366fe0 move_base ST28 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST29" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d44942b1a32dc4366fe1 move_base ST29 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST30" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d46742b1a32dc4366fe2 move_base ST30 668f1a1fe9bcef706b10fbfe" />
+
+    <node name="turtle_agm_workstation_nodeST31" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d48842b1a32dc4366fe3 move_base ST31 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST32" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d49b42b1a32dc4366fe4 move_base ST32 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST33" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4a642b1a32dc4366fe5 move_base ST33 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST34" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4b042b1a32dc4366fe6 move_base ST34 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST35" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4bb42b1a32dc4366fe7 move_base ST35 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST36" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4cd42b1a32dc4366fe8 move_base ST36 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST37" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4d842b1a32dc4366fe9 move_base ST37 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST38" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4e242b1a32dc4366fea move_base ST38 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST39" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d4f042b1a32dc4366feb move_base ST39 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST40" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d50342b1a32dc4366fec move_base ST40 668f1a1fe9bcef706b10fbfe" />
+
+    <node name="turtle_agm_workstation_nodeST41" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d60c42b1a32dc4366fed move_base ST41 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST42" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d62242b1a32dc4366fee move_base ST42 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST43" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d63542b1a32dc4366fef move_base ST43 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST44" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d64542b1a32dc4366ff0 move_base ST44 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST45" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d65442b1a32dc4366ff1 move_base ST45 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST46" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d66342b1a32dc4366ff2 move_base ST46 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST47" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d67542b1a32dc4366ff3 move_base ST47 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST48" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d68742b1a32dc4366ff4 move_base ST48 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST49" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d69e42b1a32dc4366ff5 move_base ST49 668f1a1fe9bcef706b10fbfe" />
+    <node name="turtle_agm_workstation_nodeST50" pkg="turtle_factory" type="turtle_agm_workstation_node" args="66c7d6b142b1a32dc4366ff6 move_base ST50 668f1a1fe9bcef706b10fbfe" />
+
+    <!-- setting up the worker communication nodes-->
+    <node name="web_comm_server_node1" pkg="agm_comm" type="web_comm_server_node" args="TB01"/>
+    <node name="web_comm_server_node2" pkg="agm_comm" type="web_comm_server_node" args="TB02"/>
+    <node name="web_comm_server_node3" pkg="agm_comm" type="web_comm_server_node" args="TB03"/>
+    <node name="web_comm_server_node4" pkg="agm_comm" type="web_comm_server_node" args="TB04"/>
+    <node name="web_comm_server_node5" pkg="agm_comm" type="web_comm_server_node" args="TB05"/>
+    <node name="web_comm_server_node6" pkg="agm_comm" type="web_comm_server_node" args="TB06"/>
+    <node name="web_comm_server_node7" pkg="agm_comm" type="web_comm_server_node" args="TB07"/>
+    <node name="web_comm_server_node8" pkg="agm_comm" type="web_comm_server_node" args="TB08"/>
+    <node name="web_comm_server_node9" pkg="agm_comm" type="web_comm_server_node" args="TB09"/>
+    <node name="web_comm_server_node10" pkg="agm_comm" type="web_comm_server_node" args="TB10"/>
+
+    <node name="web_comm_server_node11" pkg="agm_comm" type="web_comm_server_node" args="TB11"/>
+    <node name="web_comm_server_node12" pkg="agm_comm" type="web_comm_server_node" args="TB12"/>
+    <node name="web_comm_server_node13" pkg="agm_comm" type="web_comm_server_node" args="TB13"/>
+    <node name="web_comm_server_node14" pkg="agm_comm" type="web_comm_server_node" args="TB14"/>
+    <node name="web_comm_server_node15" pkg="agm_comm" type="web_comm_server_node" args="TB15"/>
+    <node name="web_comm_server_node16" pkg="agm_comm" type="web_comm_server_node" args="TB16"/>
+    <node name="web_comm_server_node17" pkg="agm_comm" type="web_comm_server_node" args="TB17"/>
+    <node name="web_comm_server_node18" pkg="agm_comm" type="web_comm_server_node" args="TB18"/>
+    <node name="web_comm_server_node19" pkg="agm_comm" type="web_comm_server_node" args="TB19"/>
+    <node name="web_comm_server_node20" pkg="agm_comm" type="web_comm_server_node" args="TB20"/>
+
+    <node name="web_comm_server_node21" pkg="agm_comm" type="web_comm_server_node" args="TB21"/>
+    <node name="web_comm_server_node22" pkg="agm_comm" type="web_comm_server_node" args="TB22"/>
+    <node name="web_comm_server_node23" pkg="agm_comm" type="web_comm_server_node" args="TB23"/>
+    <node name="web_comm_server_node24" pkg="agm_comm" type="web_comm_server_node" args="TB24"/>
+    <node name="web_comm_server_node25" pkg="agm_comm" type="web_comm_server_node" args="TB25"/>
+    <node name="web_comm_server_node26" pkg="agm_comm" type="web_comm_server_node" args="TB26"/>
+    <node name="web_comm_server_node27" pkg="agm_comm" type="web_comm_server_node" args="TB27"/>
+    <node name="web_comm_server_node28" pkg="agm_comm" type="web_comm_server_node" args="TB28"/>
+    <node name="web_comm_server_node29" pkg="agm_comm" type="web_comm_server_node" args="TB29"/>
+    <node name="web_comm_server_node30" pkg="agm_comm" type="web_comm_server_node" args="TB30"/>
+
+    <node name="web_comm_server_node31" pkg="agm_comm" type="web_comm_server_node" args="TB31"/>
+    <node name="web_comm_server_node32" pkg="agm_comm" type="web_comm_server_node" args="TB32"/>
+    <node name="web_comm_server_node33" pkg="agm_comm" type="web_comm_server_node" args="TB33"/>
+    <node name="web_comm_server_node34" pkg="agm_comm" type="web_comm_server_node" args="TB34"/>
+    <node name="web_comm_server_node35" pkg="agm_comm" type="web_comm_server_node" args="TB35"/>
+    <node name="web_comm_server_node36" pkg="agm_comm" type="web_comm_server_node" args="TB36"/>
+    <node name="web_comm_server_node37" pkg="agm_comm" type="web_comm_server_node" args="TB37"/>
+    <node name="web_comm_server_node38" pkg="agm_comm" type="web_comm_server_node" args="TB38"/>
+    <node name="web_comm_server_node39" pkg="agm_comm" type="web_comm_server_node" args="TB39"/>
+    <node name="web_comm_server_node40" pkg="agm_comm" type="web_comm_server_node" args="TB40"/>
+
+    <node name="web_comm_server_node41" pkg="agm_comm" type="web_comm_server_node" args="TB41"/>
+    <node name="web_comm_server_node42" pkg="agm_comm" type="web_comm_server_node" args="TB42"/>
+    <node name="web_comm_server_node43" pkg="agm_comm" type="web_comm_server_node" args="TB43"/>
+    <node name="web_comm_server_node44" pkg="agm_comm" type="web_comm_server_node" args="TB44"/>
+    <node name="web_comm_server_node45" pkg="agm_comm" type="web_comm_server_node" args="TB45"/>
+    <node name="web_comm_server_node46" pkg="agm_comm" type="web_comm_server_node" args="TB46"/>
+    <node name="web_comm_server_node47" pkg="agm_comm" type="web_comm_server_node" args="TB47"/>
+    <node name="web_comm_server_node48" pkg="agm_comm" type="web_comm_server_node" args="TB48"/>
+    <node name="web_comm_server_node49" pkg="agm_comm" type="web_comm_server_node" args="TB49"/>
+    <node name="web_comm_server_node50" pkg="agm_comm" type="web_comm_server_node" args="TB50"/>
 
 
     <!-- setting up the worker nodes-->

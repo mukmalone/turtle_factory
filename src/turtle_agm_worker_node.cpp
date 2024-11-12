@@ -60,7 +60,7 @@ public:
 
 void Robot_Class::agm_comm()
 {
-  ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm" + name.substr(2, 2));
+  ros::ServiceClient agmClient = n.serviceClient<agm_msgs::WebComm>("/web_comm" + name);
   job.request.key = key;
   job.request.owner = owner;
   agmClient.call(job);
@@ -449,10 +449,6 @@ int main(int argc, char **argv)
         // error
         if (robot.job.request.function != "ERROR")
         {
-          //cout << "reset" << endl;
-          //cout << job << endl;
-          //cout << status << endl;
-          //cout << robot.job.response.name << endl;
           // start over
           robot.job.request.function = "START";
           robot.job.request.location = "";
@@ -467,7 +463,7 @@ int main(int argc, char **argv)
     }
     else
     {
-      cout << "Factory not ready" << endl;
+      //cout << "Factory not ready" << endl;
     }
     counter += 1;
     ros::spinOnce();
