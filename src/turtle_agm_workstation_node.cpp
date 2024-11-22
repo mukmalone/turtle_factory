@@ -97,7 +97,6 @@ void Workstation_Class::connect_workstation()
 {
   subscriber_pose = n.subscribe<turtlesim::Pose>("/" + name + "/pose", 5, &Workstation_Class::poseCallback, this);
   cmd_vel = n.advertise<geometry_msgs::Twist>("/" + name + "/cmd_vel", 10);
-  cout<<"name: " <<name<<endl;
 
   // initiate the values of the control command to zero where needed
   control_command.linear.y = 0.0;
@@ -117,10 +116,8 @@ void Workstation_Class::connect_workstation()
 
 void Workstation_Class::move(float posX, float posY, float posZ, float orientX, float orientY, float orientZ, float orientW)
 {
-  cout << "Trying to move to X: " + to_string(posX) + " Y: " + to_string(posY) << endl;
   goal_x = posX;
   goal_y = posY;
-  cout << "Current position X: " + to_string(pose.x) + " Y: " + to_string(pose.y) << endl;
 
   // tell the action client that we want to spin a thread by default
 
@@ -185,11 +182,6 @@ void Workstation_Class::workstation_at_goal()
   }
 }
 
-void output(int in)
-{
-  cout << to_string(in) << endl;
-}
-
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "turtle_agm_workstation_node");
@@ -207,10 +199,6 @@ int main(int argc, char **argv)
     workstation.name = argv[3];
     workstation.owner = argv[4];
     workstation.workstation_connected = 0;
-  }
-  else
-  {
-    cout << "No key defined for the workstation interface" << endl;
   }
 
   // find next job
@@ -255,7 +243,6 @@ int main(int argc, char **argv)
       else if (job == "WORKSTATIONSTATUS" && status == 1)
       {
         // we have a new job to be activated
-        cout << "Found next job and activating" << endl;
         // source
         sPosX = workstation.job.response.sourcePosX;
         sPosY = workstation.job.response.sourcePosY;
@@ -291,7 +278,7 @@ int main(int argc, char **argv)
         else if (workstation.at_goal && workstation.at_goal2 && !workstation.at_park)
         {
           workstation.goal_x = sPosX - 0.6;
-          workstation.goal_y = sPosY;
+          workstation.goal_y = sPosY - 0.6;
           workstation.pen_state.request.r = 0;
           workstation.pen_state.request.g = 0;
           workstation.pen_state.request.b = 0;
@@ -340,7 +327,6 @@ int main(int argc, char **argv)
         workstation.job.request.stationStatus = "";
         workstation.job.request.stepStatus = "";
         workstation_completed = 0;
-        cout << "Start again" << endl;
       }
       else
       {
@@ -357,10 +343,6 @@ int main(int argc, char **argv)
           workstation.job.request.function = "START";
         }
       }
-    }
-    else
-    {
-      //cout << "Factory not ready" << endl;
     }
     counter += 1;
     ros::spinOnce();

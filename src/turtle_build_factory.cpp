@@ -302,10 +302,6 @@ int main(int argc, char **argv)
                             {
                                 origin_x = 1 + (i * (10.0 / num_workstations_per_row));
                                 origin_y = 2 + (k * (8.0 / num_rows_workstations));
-                                cout << to_string(i) << endl;
-                                cout << to_string(origin_x) << endl;
-                                cout << to_string(origin_y) << endl;
-                                ROS_DEBUG("Hello %s", "World");
                                 pen_state.request.r = 0;
                                 pen_state.request.g = 255;
                                 pen_state.request.b = 0;
