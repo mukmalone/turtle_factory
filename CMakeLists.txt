@@ -151,12 +151,15 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(turtle_build_factory src/turtle_build_factory.cpp)
+add_dependencies(turtle_build_factory ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(turtle_build_factory ${catkin_LIBRARIES})
 
 add_executable(turtle_agm_worker_node src/turtle_agm_worker_node.cpp)
+add_dependencies(turtle_agm_worker_node ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(turtle_agm_worker_node ${catkin_LIBRARIES})
 
 add_executable(turtle_agm_workstation_node src/turtle_agm_workstation_node.cpp)
+add_dependencies(turtle_agm_workstation_node ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(turtle_agm_workstation_node ${catkin_LIBRARIES})
 
 ## Specify libraries to link a library or executable target against
