@@ -13,6 +13,7 @@ sudo apt-get install -y docker.io
 ### Run docker container ###
 For VNC:
 `sudo docker run -d --name turtle_facotry -p 5901:5901 turtle_factory:001`
+sudo docker exec -it turtle_factory
 
 ### Connecting to VNC: ###
 `vnc://ec2-ip-address:5901`
