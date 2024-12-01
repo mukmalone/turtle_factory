@@ -31,10 +31,14 @@ EXPOSE 80
 # Install VNC and XFCE for GUI
 # (Already installed in the RUN command above)
 
-# Setup VNC password (default password is 'vncpassword')
+# Setup VNC password (default password is 'vncpass')
 RUN mkdir -p /home/$USER/.vnc
-RUN echo "vncpassword" | vncpasswd -f > /home/$USER/.vnc/passwd
+RUN echo "vncpass" | vncpasswd -f > /home/$USER/.vnc/passwd
+RUN chown -R $USER:$USER /home/$USER/.vnc
+RUN chmod 700 /home/$USER/.vnc
 RUN chmod 600 /home/$USER/.vnc/passwd
+RUN echo "/usr/bin/vncserver :1 -geometry 1280x800 -depth 24" > /home/$USER/.vnc/xstartup
+RUN chmod 755 /home/$USER/.vnc/xstartup
 
 # Create VNC startup script
 RUN echo "/usr/bin/vncserver :1 -geometry 1280x800 -depth 24" > /home/$USER/.vnc/xstartup
