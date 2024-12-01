@@ -1,12 +1,14 @@
 ### Install Docker on the EC2 Instance ###
-
 sudo apt-get update
+sudo apt-get install git
+git clone https://github.com/mukmalone/turtle_factory.git
+
+cd ~/turtle_factory/docker-Linux/
+
 sudo apt-get install -y docker.io
-sudo systemctl start docker
-sudo systemctl enable docker
 
 ### Build dockerimage ###
-`docker build -t turtle_factory:001 .`
+`sudo docker build -t turtle_factory:001 .`
 
 ### Run docker container ###
 For VNC:

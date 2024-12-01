@@ -1,10 +1,14 @@
 FROM osrf/ros:noetic-desktop-full
 
 # Update and Install dependencies
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     git \
     ros-noetic-move-base-msgs \
-    libcurl4-openssl-dev
+    libcurl4-openssl-dev \
+    xfce4 \
+    xfce4-goodies \
+    tightvncserver
 
 # Setup catkin workspace
 WORKDIR /catkin_ws
@@ -19,12 +23,6 @@ RUN /bin/bash -c '. /opt/ros/noetic/setup.bash; catkin_make'
 
 # Expose ports if necessary (example using port 80 for a web UI)
 EXPOSE 80
-
-# Install VNC and XFCE for GUI
-RUN apt-get update && apt-get install -y \
-    xfce4 \
-    xfce4-goodies \
-    tightvncserver
 
 # Setup VNC password (default password is 'vncpassword')
 RUN mkdir -p ~/.vnc
