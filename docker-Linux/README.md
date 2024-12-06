@@ -22,3 +22,6 @@ sudo docker exec -it turtle_factory
 `cd /catkin_ws/src/turtle_factory/launch`
 `source /catkin_ws/devel/setup.bash`
 `roslaunch turtle_factory.launch`
+
+
+Tutorial on GUI: https://www.youtube.com/watch?v=foCG_mH8bxk&t=24s
