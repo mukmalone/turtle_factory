@@ -5,7 +5,11 @@ FROM osrf/ros:noetic-desktop-full
 RUN apt-get update && apt-get install -y \
     git \
     ros-noetic-move-base-msgs \
-    libcurl4-openssl-dev 
+    libcurl4-openssl-dev \
+    x11-apps \
+    x11-utils \
+    x11-xserver-utils \
+    && rm -rf /var/lib/apt/lists/*
 #    xfce4 \
 #    xfce4-goodies \
 #    apt-utils \
