@@ -15,8 +15,8 @@ For VNC:
 `sudo docker run -d --name turtle_facotry -p 5901:5901 turtle_factory:001`
 sudo docker exec -it turtle_factory
 
-### Connecting to VNC: ###
-`vnc://ec2-ip-address:5901`
+### Connecting through SSH: ###
+`ssh -i 11-30.pem -X ec2-user@54.162.186.228`
 
 ### in the bash ###
 `cd /catkin_ws/src/turtle_factory/launch`
